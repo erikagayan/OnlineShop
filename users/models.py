@@ -3,4 +3,5 @@ from django.db import models
 
 
 class User(AbstractUser):
-    pass
+    is_moderator = models.BooleanField(default=False)
+    is_manager = models.BooleanField(default=False)
