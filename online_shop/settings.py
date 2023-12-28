@@ -1,3 +1,4 @@
+import os
 from datetime import timedelta
 from pathlib import Path
 
@@ -110,3 +111,5 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": False,
 }
 
+MEDIA_ROOT = os.path.join(BASE_DIR, "shop/product_images/")
+MEDIA_URL = "/api/shop/products/"
