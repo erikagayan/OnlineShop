@@ -1,8 +1,21 @@
 from rest_framework import viewsets, mixins
 from rest_framework.permissions import IsAuthenticated
 from shop.permissions import IsStaffOrReadOnly
-from shop.serializers import ProductSerializer, ProductListSerializer
-from shop.models import Product
+from shop.serializers import ProductSerializer, ProductListSerializer, CategorySerializer
+from shop.models import Product, Category
+
+
+class CategoryViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticated, IsStaffOrReadOnly]
 
 
 class ProductViewSet(
