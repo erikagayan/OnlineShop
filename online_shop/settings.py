@@ -2,7 +2,6 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = "django-insecure-pn8ni585*tok5@+cqukpaqi3qlbc-+6l^gl91h+!=63a6-(+4$"
@@ -11,7 +10,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -19,6 +17,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_password_validators",
+    "django_password_validators.password_history",
     "rest_framework",
     "rest_framework_simplejwt",
     "shop",
@@ -55,14 +55,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "online_shop.wsgi.application"
 
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-
 
 AUTH_USER_MODEL = "users.User"
 
@@ -79,8 +77,19 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
+    {
+        "NAME": "django_password_validators.password_character_requirements.password_validation"
+        ".PasswordCharacterValidator",
+        "OPTIONS": {
+            "min_length_digit": 1,
+            "min_length_alpha": 2,
+            "min_length_special": 1,
+            "min_length_lower": 1,
+            "min_length_upper": 1,
+            "special_characters": "~!@#$%^&*()_+{}\":;'[]",
+        },
+    },
 ]
-
 
 LANGUAGE_CODE = "en-us"
 
@@ -90,15 +99,12 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 STATIC_URL = "static/"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "shop/product_images/")
 MEDIA_URL = "/media/"
 
-
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
