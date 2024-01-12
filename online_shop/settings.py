@@ -93,6 +93,9 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+MEDIA_ROOT = os.path.join(BASE_DIR, "shop/product_images/")
+MEDIA_URL = "/media/"
+
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -108,6 +111,3 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=3),
     "ROTATE_REFRESH_TOKENS": False,
 }
-
-MEDIA_ROOT = os.path.join(BASE_DIR, "shop/product_images/")
-MEDIA_URL = "/api/shop/products/"
