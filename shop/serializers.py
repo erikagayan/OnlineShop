@@ -18,6 +18,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "description",
             "manufacturer",
             "category",
+            "inventory"
         ]
 
 

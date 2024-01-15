@@ -3,6 +3,7 @@ import uuid
 
 from django.db import models
 from django.utils.text import slugify
+from rest_framework.exceptions import ValidationError
 
 from shop.countries import COUNTRIES
 
@@ -35,11 +36,15 @@ class Product(models.Model):
     category = models.ForeignKey(
         Category, on_delete=models.CASCADE, related_name="products"
     )
-
     image_path = models.CharField(max_length=1024, blank=True, null=True)
+    inventory = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ["id"]
 
     def __str__(self):
         return self.title
+
+    def clean(self):
+        if self.inventory < 0:
+            raise ValidationError({"inventory": "Inventory cannot be negative"})

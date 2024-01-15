@@ -1,5 +1,7 @@
-from rest_framework import viewsets, mixins
+from rest_framework import viewsets, mixins, status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
 from shop.permissions import IsStaffOrReadOnly
 from shop.serializers import (
     ProductSerializer,
@@ -47,3 +49,23 @@ class ProductViewSet(
         elif order_by == "category":
             queryset = queryset.order_by("category")
         return queryset
+
+    """Inventory cannot be negative during create"""
+    def perform_create(self, serializer):
+        inventory = int(self.request.data.get("inventory", 0))
+        if inventory < 0:
+            return Response(
+                {"inventory": "Inventory cannot be negative."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        serializer.save()
+
+    """Inventory cannot be negative during update"""
+    def perform_update(self, serializer):
+        inventory = int(self.request.data.get("inventory", 0))
+        if inventory < 0:
+            return Response(
+                {"inventory": "Inventory cannot be negative."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        serializer.save()
