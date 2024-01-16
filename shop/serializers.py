@@ -29,12 +29,18 @@ class ProductListSerializer(serializers.ModelSerializer):
 
 
 class CartSerializer(serializers.ModelSerializer):
-    items = serializers.CharField(source="items.title", read_only=True)
+    item_title = serializers.CharField(source="items.title", read_only=True)
 
     class Meta:
         model = Cart
-        fields = ["id", "user", "items", "quantity", "created_at", "updated_at"]
-        read_only_fields = ["user"]
+        fields = ["id", "user", "item_title", "items", "quantity", "created_at", "updated_at"]
+        read_only_fields = ["user", "item_title"]
+        extra_kwargs = {
+            "items": {"write_only": True}  # Making items writable only
+        }
+
+    def get_item_title(self, obj):
+        return obj.items.title if obj.items else None
 
     def validate(self, data):
         """

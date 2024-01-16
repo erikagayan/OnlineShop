@@ -5,7 +5,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from shop.permissions import IsStaffOrReadOnly
+from shop.permissions import IsStaffOrReadOnly, IsOwnerOrStaff
 from shop.serializers import (
     ProductSerializer,
     ProductListSerializer,
@@ -88,7 +88,7 @@ class CartViewSet(
 ):
     queryset = Cart.objects.all().order_by("id")
     serializer_class = CartSerializer
-    permission_classes = [IsAuthenticated, IsStaffOrReadOnly]
+    permission_classes = [IsAuthenticated, IsOwnerOrStaff]
 
     def get_queryset(self):
         """Only the current user's shopping carts."""
