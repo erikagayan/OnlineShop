@@ -1,6 +1,7 @@
 import os
 import uuid
 
+from django.conf import settings
 from django.db import models
 from django.utils.text import slugify
 from rest_framework.exceptions import ValidationError
@@ -48,3 +49,18 @@ class Product(models.Model):
     def clean(self):
         if self.inventory < 0:
             raise ValidationError({"inventory": "Inventory cannot be negative"})
+
+
+class Cart(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    items = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True)
+    quantity = models.IntegerField(null=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return "{} - {} - {} - {} - {}".format(
+            self.user, self.items, self.quantity, self.created_at, self.updated_at
+        )
