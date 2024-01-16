@@ -36,4 +36,6 @@ class IsOwnerOrStaff(permissions.BasePermission):
             return True
 
         # Write permissions are only allowed to the owner of the cart or staff.
-        return obj.user == request.user or is_manager_or_moderator_or_superuser(request.user)
+        return obj.user == request.user or is_manager_or_moderator_or_superuser(
+            request.user
+        )

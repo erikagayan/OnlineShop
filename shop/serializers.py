@@ -30,14 +30,29 @@ class ProductListSerializer(serializers.ModelSerializer):
 
 class CartSerializer(serializers.ModelSerializer):
     item_title = serializers.CharField(source="items.title", read_only=True)
+    total_cost = serializers.SerializerMethodField()
 
     class Meta:
         model = Cart
-        fields = ["id", "user", "item_title", "items", "quantity", "created_at", "updated_at"]
-        read_only_fields = ["user", "item_title"]
-        extra_kwargs = {
-            "items": {"write_only": True}  # Making items writable only
-        }
+        fields = [
+            "id",
+            "user",
+            "item_title",
+            "items",
+            "quantity",
+            "created_at",
+            "updated_at",
+            "total_cost",
+        ]
+        read_only_fields = ["user", "item_title", "total_cost"]
+        extra_kwargs = {"items": {"write_only": True}}  # Making items writable only
+
+    def get_total_cost(self, obj):
+        """Calculating the total amount"""
+        total = 0
+        for item in Cart.objects.filter(user=obj.user):
+            total += item.items.price * item.quantity
+        return total
 
     def get_item_title(self, obj):
         return obj.items.title if obj.items else None
