@@ -1,5 +1,5 @@
-from django.contrib.auth import get_user_model
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
 from .validators import CustomPasswordValidator
 
 
@@ -12,7 +12,7 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {"password": {"write_only": True}}
 
     def validate_password(self, value):
-        # Используем наш кастомный валидатор для проверки пароля
+        # Use our custom validator to validate the password
         errors = self.password_validator.validate_password(value)
         if errors:
             raise serializers.ValidationError(errors)
