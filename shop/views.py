@@ -54,6 +54,22 @@ class ProductViewSet(
             queryset = queryset.order_by("category")
         return queryset
 
+        """Only for documentation"""
+        @extend_schema(
+            parameters=[
+                OpenApiParameter(
+                    "price",
+                    type={"type": "list", "items": {"type": "number"}},
+                ),
+                OpenApiParameter(
+                    "category",
+                    type={"type": "list", "items": {"type": "number"}},
+                )
+            ]
+        )
+        def list(self, request, *args, **kwargs):
+            return super().list(request, *args, **kwargs)
+
     """Inventory cannot be negative during create"""
 
     def perform_create(self, serializer):
@@ -93,6 +109,18 @@ class CartViewSet(
         """Only the current user's shopping carts."""
         user = self.request.user
         return Cart.objects.filter(user=user).order_by("id")
+
+        """Only for documentation"""
+        @extend_schema(
+            parameters=[
+                OpenApiParameter(
+                    "user",
+                    type={"type": "list", "items": {"type": "number"}},
+                )
+            ]
+        )
+        def list(self, request, *args, **kwargs):
+            return super().list(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

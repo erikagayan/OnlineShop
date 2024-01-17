@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_password_validators",
     "django_password_validators.password_history",
+    "drf_spectacular",
     "rest_framework",
     "rest_framework_simplejwt",
     "shop",
@@ -79,7 +80,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         "NAME": "django_password_validators.password_character_requirements.password_validation"
-        ".PasswordCharacterValidator",
+                ".PasswordCharacterValidator",
         "OPTIONS": {
             "min_length_digit": 1,
             "min_length_alpha": 2,
@@ -109,11 +110,27 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-    )
+    ),
+
+    "DEFAULT_SCHEMA_CLASS":
+        "drf_spectacular.openapi.AutoSchema",
 }
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=3),
     "ROTATE_REFRESH_TOKENS": False,
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Online shop API",
+    "DESCRIPTION": "Buy products",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "defaultModelRendering": "model",
+        "defaultModelExpandDepth": 2,
+        "defaultModelsExpandDepth": 2,
+    }
 }
