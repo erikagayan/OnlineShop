@@ -10,7 +10,7 @@ SECRET_KEY = config("SECRET_KEY", default="super-secret", cast=str)
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -57,6 +57,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "online_shop.wsgi.application"
+
+RUNNING_IN_DOCKER = os.environ.get("RUNNING_IN_DOCKER", "False") == "True"
 
 DATABASES = {
     "default": {
