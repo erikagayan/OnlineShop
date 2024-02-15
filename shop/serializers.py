@@ -9,6 +9,8 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    category = serializers.StringRelatedField()
+
     class Meta:
         model = Product
         fields = [
@@ -23,6 +25,8 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class ProductListSerializer(serializers.ModelSerializer):
+    category = serializers.StringRelatedField()
+
     class Meta:
         model = Product
         fields = ["id", "title", "price", "category"]
