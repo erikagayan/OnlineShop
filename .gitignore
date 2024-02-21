@@ -1,4 +1,4 @@
-online_shop/.env
+.env
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,django,pycharm+all
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,django,pycharm+all
@@ -134,7 +134,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-online_shop/.env
+.env
 .venv
 env/
 venv/
