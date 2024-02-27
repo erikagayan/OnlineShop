@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { TextField, Button, MenuItem, FormControl, InputLabel, Select, TextareaAutosize, Box, Typography } from '@mui/material';
 
 const CreateProductForm: React.FC = () => {
   const initialProductState = {
-    title: "",
+    title: '',
     price: 0,
-    description: "",
-    manufacturer: "",
-    category: "",
+    description: '',
+    manufacturer: '',
+    category: '',
     inventory: 0,
   };
 
@@ -20,18 +21,14 @@ const CreateProductForm: React.FC = () => {
 
   const loadCategories = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:8000/api/shop/categories/"
-      );
+      const response = await axios.get('http://localhost:8000/api/shop/categories/');
       setCategories(response.data);
     } catch (error) {
-      console.error("Ошибка при загрузке категорий:", error);
+      console.error('Ошибка при загрузке категорий:', error);
     }
   };
 
-  const handleChange: React.ChangeEventHandler<
-    HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-  > = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setProduct({
       ...product,
@@ -42,14 +39,11 @@ const CreateProductForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        "http://localhost:8000/api/shop/products/",
-        product
-      );
-      console.log("Продукт успешно создан:", response.data);
+      const response = await axios.post('http://localhost:8000/api/shop/products/', product);
+      console.log('Продукт успешно создан:', response.data);
       setProduct(initialProductState);
     } catch (error) {
-      console.error("Ошибка при создании продукта:", error);
+      console.error('Ошибка при создании продукта:', error);
     }
   };
 
@@ -189,95 +183,88 @@ const CreateProductForm: React.FC = () => {
   ];
 
   return (
-    <div className="container mt-5">
-      <h2>Create Product</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="title">Title</label>
-          <input
-            type="text"
-            className="form-control"
-            id="title"
-            name="title"
-            value={product.title}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="price">Price</label>
-          <input
-            type="number"
-            className="form-control"
-            id="price"
-            name="price"
-            value={product.price}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="description">Description</label>
-          <textarea
-            className="form-control"
-            name="description"
-            id="description"
-            value={product.description}
-            onChange={handleChange}
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="manufacturer">Manufacturer (Country)</label>
-          <select
-            className="form-control"
-            id="manufacturer"
-            name="manufacturer"
+    <Box className="container mt-5">
+      <Typography variant="h4" gutterBottom>
+        Create Product
+      </Typography>
+      <Box component="form" onSubmit={handleSubmit} noValidate autoComplete="off">
+        <TextField
+          fullWidth
+          label="Title"
+          variant="outlined"
+          name="title"
+          value={product.title}
+          onChange={handleChange}
+          margin="normal"
+          required
+        />
+        <TextField
+          fullWidth
+          label="Price"
+          type="number"
+          variant="outlined"
+          name="price"
+          value={product.price}
+          onChange={handleChange}
+          margin="normal"
+          required
+        />
+        <TextField
+          fullWidth
+          label="Description"
+          variant="outlined"
+          name="description"
+          value={product.description}
+          onChange={handleChange}
+          margin="normal"
+          multiline
+          rows={4}
+        />
+        <FormControl fullWidth margin="normal">
+          <InputLabel>Manufacturer (Country)</InputLabel>
+          <Select
             value={product.manufacturer}
+            label="Manufacturer (Country)"
             onChange={handleChange}
+            name="manufacturer"
           >
-            <option value="">Select a country</option>
             {countries.map((country) => (
-              <option key={country.code} value={country.code}>
+              <MenuItem key={country.code} value={country.code}>
                 {country.name}
-              </option>
+              </MenuItem>
             ))}
-          </select>
-        </div>
-        <div className="form-group">
-          <label htmlFor="category">Category</label>
-          <select
-            className="form-control"
-            id="category"
-            name="category"
+          </Select>
+        </FormControl>
+        <FormControl fullWidth margin="normal">
+          <InputLabel>Category</InputLabel>
+          <Select
             value={product.category}
+            label="Category"
             onChange={handleChange}
+            name="category"
           >
-            <option value="">Select a category</option>
             {categories.map((category) => (
-              <option key={category.id} value={category.id}>
+              <MenuItem key={category.id} value={category.id}>
                 {category.name}
-              </option>
+              </MenuItem>
             ))}
-          </select>
-        </div>
-        <div className="form-group">
-          <label htmlFor="inventory">Inventory</label>
-          <input
-            type="number"
-            className="form-control"
-            id="inventory"
-            name="inventory"
-            value={product.inventory}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <button type="submit" className="btn btn-primary">
-            Create
-          </button>
-        </div>
-      </form>
-    </div>
+          </Select>
+        </FormControl>
+        <TextField
+          fullWidth
+          label="Inventory"
+          type="number"
+          variant="outlined"
+          name="inventory"
+          value={product.inventory}
+          onChange={handleChange}
+          margin="normal"
+        />
+        <Button type="submit" variant="contained" color="primary">
+          Create
+        </Button>
+      </Box>
+    </Box>
   );
 };
 

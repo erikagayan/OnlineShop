@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
+import { Typography, Button, List, ListItem, ListItemText, Link } from "@mui/material";
 import CreateProductForm from "./CreateProductForm";
 
 interface Product {
@@ -32,20 +33,29 @@ const ProductsList: React.FC = () => {
 
   return (
     <div>
-      <h2>List of products</h2>
-      <button className="btn btn-primary" onClick={toggleCreateForm}>Create Product</button>
+      <Typography variant="h4" gutterBottom>
+        List of Products
+      </Typography>
+      <Button variant="contained" onClick={toggleCreateForm}>
+        Create Product
+      </Button>
       {showCreateForm && <CreateProductForm />}
-      <ul>
+      <List>
         {products.map((product) => (
-          <li key={product.id}>
-            <Link to={`/shop/products/${product.id}`}>{product.title}</Link>
-            <ul>
-              <li>Price: {product.price}$ </li>
-              <li>Category: {product.category}</li>
-            </ul>
-          </li>
+          <ListItem key={product.id}>
+            <ListItemText
+              primary={<Link component={RouterLink} to={`/shop/products/${product.id}`}>{product.title}</Link>}
+              secondary={
+                <>
+                  <Typography component="span" variant="body2">Price: {product.price}$</Typography>
+                  <br />
+                  <Typography component="span" variant="body2">Category: {product.category}</Typography>
+                </>
+              }
+            />
+          </ListItem>
         ))}
-      </ul>
+      </List>
     </div>
   );
 };

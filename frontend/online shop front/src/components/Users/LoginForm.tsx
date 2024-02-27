@@ -1,7 +1,15 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import Link from '@mui/material/Link';
+import Box from '@mui/material/Box';
+import Container from '@mui/material/Container';
+import Alert from '@mui/material/Alert';
 
 const LoginForm: React.FC = () => {
   const navigate = useNavigate();
@@ -29,70 +37,82 @@ const LoginForm: React.FC = () => {
       if (response.data.access && response.data.refresh) {
         setTokens({ access: response.data.access, refresh: response.data.refresh });
       } else {
-        setErrorMessage("Ошибка: токены не получены.");
+        setErrorMessage("Error: Tokens not received.");
       }
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         setErrorMessage(
-          "Ошибка при попытке входа. Проверьте введенные данные."
+          "Login attempt failed. Please check your credentials."
         );
       } else {
-        setErrorMessage("Ошибка сети или сервера.");
+        setErrorMessage("Network or server error.");
       }
     }
   };
 
   return (
-    <div className="container mt-5">
-      <h2>Log in</h2>
-      {errorMessage && (
-        <div className="alert alert-danger" role="alert">
-          {errorMessage}
-        </div>
-      )}
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label htmlFor="email" className="form-label">
-            Email
-          </label>
-          <input
-            type="email"
-            className="form-control"
+    <Container component="main" maxWidth="xs">
+      <Paper elevation={6} sx={{ mt: 8, p: 3 }}>
+        <Typography component="h1" variant="h5">
+          Log in
+        </Typography>
+        {errorMessage && (
+          <Alert severity="error">{errorMessage}</Alert>
+        )}
+        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+          <TextField
+            variant="outlined"
+            margin="normal"
+            required
+            fullWidth
             id="email"
+            label="Email Address"
             name="email"
+            autoComplete="email"
+            autoFocus
             value={formData.email}
             onChange={handleChange}
-            required
           />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="password" className="form-label">
-            Password
-          </label>
-          <input
-            type="password"
-            className="form-control"
-            id="password"
+          <TextField
+            variant="outlined"
+            margin="normal"
+            required
+            fullWidth
             name="password"
+            label="Password"
+            type="password"
+            id="password"
+            autoComplete="current-password"
             value={formData.password}
             onChange={handleChange}
-            required
           />
-        </div>
-        <button type="submit" className="btn btn-primary">
-          Login
-        </button>
-      </form>
-      {tokens && (
-        <div className="alert alert-success mt-3" role="alert" style={{ wordWrap: "break-word" }}>
-          <p style={{ color: "black" }}>Access Token: <b>{tokens.access}</b></p>
-          <p style={{ color: "black" }}>Refresh Token: <b>{tokens.refresh}</b></p>
-        </div>
-      )}
-      <div className="mt-3">
-        No account? <Link to="/user/register">Sign up</Link>
-      </div>
-    </div>
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{ mt: 3, mb: 2 }}
+          >
+            Login
+          </Button>
+        </Box>
+        {tokens && (
+          <Box sx={{ wordBreak: "break-all", backgroundColor: 'success.light', p: 2, mt: 2 }}>
+            <Typography variant="body1" component="p">
+              Access Token: <Typography component="span" color="text.primary" variant="body1" fontWeight="fontWeightBold">{tokens.access}</Typography>
+            </Typography>
+            <Typography variant="body1" component="p">
+              Refresh Token: <Typography component="span" color="text.primary" variant="body1" fontWeight="fontWeightBold">{tokens.refresh}</Typography>
+            </Typography>
+          </Box>
+        )}
+        <Typography variant="body2" color="textSecondary" align="center" sx={{ mt: 3 }}>
+          No account?{' '}
+          <Link component={RouterLink} to="/user/register" variant="body2">
+            Sign up
+          </Link>
+        </Typography>
+      </Paper>
+    </Container>
   );
 };
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { Container, Typography, TextField, Button, Select, MenuItem, FormControl, InputLabel, CircularProgress, List, ListItem, ListItemText } from "@mui/material";
 
 interface CartItem {
   id: number;
@@ -65,44 +66,57 @@ const Cart = () => {
     }
   };
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <Container><CircularProgress /></Container>;
 
   return (
-    <div>
-      <h2>Your cart</h2>
-      <ul>
+    <Container sx={{ mt: 5 }}>
+      <Typography variant="h4" gutterBottom>
+      Your shopping cart
+      </Typography>
+      <List>
         {cartItems.map((item) => (
-          <li key={item.id}>
-            <ul>
-              <li><b>{item.item_title}</b></li>
-              <li><b>Count:</b> {item.quantity}</li>
-              <li><b>Total cost:</b> {item.total_cost}$</li>
-              <li><b>Created at:</b> {new Date(item.created_at).toLocaleString()}</li>
-              <li><b>Updated at:</b> {new Date(item.updated_at).toLocaleString()}</li>
-              <li><b>User:</b> {item.user}</li>
-            </ul>
-          </li>
+          <ListItem key={item.id} sx={{ mb: 2 }}>
+            <ListItemText
+              primary={item.item_title}
+              secondary={`Quantity: ${item.quantity}, Total cost: ${item.total_cost}$, Created at: ${new Date(item.created_at).toLocaleString()}, Updated at: ${new Date(item.updated_at).toLocaleString()}, User: ${item.user}`}
+            />
+          </ListItem>
         ))}
-      </ul>
+      </List>
 
-      <h3>Add product to cart</h3>
+      <Typography variant="h5" gutterBottom>
+      Add product to cart
+      </Typography>
       <form onSubmit={handleAddToCart}>
-        <div>
-          <label>Product:</label>
-          <select value={selectedProductId} onChange={e => setSelectedProductId(Number(e.target.value))}>
-            <option value="">Select a product</option>
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <InputLabel>Product</InputLabel>
+          <Select
+            value={selectedProductId}
+            onChange={e => setSelectedProductId(Number(e.target.value))}
+            displayEmpty
+          >
+            <MenuItem value="">
+              <em>Choose product</em>
+            </MenuItem>
             {products.map(product => (
-              <option key={product.id} value={product.id}>{product.title}</option>
+              <MenuItem key={product.id} value={product.id}>{product.title}</MenuItem>
             ))}
-          </select>
-        </div>
-        <div>
-          <label>Quantity:</label>
-          <input type="number" value={quantity} onChange={e => setQuantity(Number(e.target.value))} min="1" />
-        </div>
-        <button type="submit">Add to Cart</button>
+          </Select>
+        </FormControl>
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <TextField
+            label="Количество"
+            type="number"
+            value={quantity}
+            onChange={e => setQuantity(Number(e.target.value))}
+            InputProps={{ inputProps: { min: 1 } }}
+          />
+        </FormControl>
+        <Button type="submit" variant="contained" color="primary">
+          Add to cart
+        </Button>
       </form>
-    </div>
+    </Container>
   );
 };
 

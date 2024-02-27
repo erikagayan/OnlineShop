@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import axios, { AxiosError } from "axios";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import React, { useState } from 'react';
+import axios, { AxiosError } from 'axios';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { Container, TextField, Button, Typography, Link, Alert } from '@mui/material';
 
 interface FormData {
   username: string;
@@ -11,15 +11,15 @@ interface FormData {
 }
 
 const RegistrationForm: React.FC = () => {
-  const navigate = useNavigate(); // Инициализируем useNavigate
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
-    username: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
   });
 
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -28,113 +28,94 @@ const RegistrationForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      setErrorMessage("Пароли не совпадают.");
+      setErrorMessage('Пароли не совпадают.');
       return;
     }
 
-    setErrorMessage("");
+    setErrorMessage('');
     try {
-      const response = await axios.post(
-        "http://localhost:8000/api/users/register/",
-        {
-          username: formData.username,
-          email: formData.email,
-          password: formData.password,
-        }
-      );
+      const response = await axios.post('http://localhost:8000/api/users/register/', {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      });
       if (response.status === 201) {
-        // После успешной регистрации перенаправляем пользователя на страницу входа
-        navigate("/user/login");
+        navigate('/user/login');
       }
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         const errors: Record<string, any> = error.response.data;
         const errorMessages = Object.entries(errors)
-          .map(([key, value]) => `${key}: ${value.join(", ")}`)
-          .join("\n");
+          .map(([key, value]) => `${key}: ${value.join(', ')}`)
+          .join('\n');
         setErrorMessage(`Ошибка при регистрации: ${errorMessages}`);
       } else {
-        setErrorMessage("Ошибка при регистрации. Попробуйте снова.");
+        setErrorMessage('Ошибка при регистрации. Попробуйте снова.');
       }
     }
   };
 
   return (
-    <div className="container mt-5">
-      <h2>Registration</h2>
-      {errorMessage && (
-        <div className="alert alert-danger" role="alert">
-          {errorMessage}
-        </div>
-      )}
+    <Container maxWidth="sm" sx={{ mt: 5 }}>
+      <Typography variant="h4" gutterBottom>
+        Registration
+      </Typography>
+      {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
       <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label htmlFor="username" className="form-label">
-            User Name
-          </label>
-          <input
-            type="text"
-            className="form-control"
-            id="username"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="email" className="form-label">
-            Email
-          </label>
-          <input
-            type="email"
-            className="form-control"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="password" className="form-label">
-            Password
-          </label>
-          <input
-            type="password"
-            className="form-control"
-            id="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="confirmPassword" className="form-label">
-            Confirm Password
-          </label>
-          <input
-            type="password"
-            className="form-control"
-            id="confirmPassword"
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <button type="submit" className="btn btn-primary">
+        <TextField
+          label="User Name"
+          variant="outlined"
+          fullWidth
+          name="username"
+          value={formData.username}
+          onChange={handleChange}
+          margin="normal"
+          required
+        />
+        <TextField
+          label="Email"
+          variant="outlined"
+          fullWidth
+          name="email"
+          type="email"
+          value={formData.email}
+          onChange={handleChange}
+          margin="normal"
+          required
+        />
+        <TextField
+          label="Password"
+          variant="outlined"
+          fullWidth
+          name="password"
+          type="password"
+          value={formData.password}
+          onChange={handleChange}
+          margin="normal"
+          required
+        />
+        <TextField
+          label="Confirm Password"
+          variant="outlined"
+          fullWidth
+          name="confirmPassword"
+          type="password"
+          value={formData.confirmPassword}
+          onChange={handleChange}
+          margin="normal"
+          required
+        />
+        <Button type="submit" variant="contained" sx={{ mt: 3, mb: 2 }}>
           Sign Up
-        </button>
-        <div>
-          {/* Существующий код формы */}
-          <div className="mt-3">
-            Already registered? <Link to="/user/login">Sign in</Link>
-          </div>
-        </div>
+        </Button>
+        <Typography variant="body2">
+          Already registered?{' '}
+          <Link component={RouterLink} to="/user/login">
+            Sign in
+          </Link>
+        </Typography>
       </form>
-    </div>
+    </Container>
   );
 };
 

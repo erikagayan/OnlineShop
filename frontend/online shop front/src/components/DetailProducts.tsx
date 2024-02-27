@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-
+import { Typography, CircularProgress, Card, CardContent } from "@mui/material";
 
 interface Product {
   id: number;
@@ -15,32 +15,63 @@ interface Product {
 const DetailProduct: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     fetch(`http://localhost:8000/api/shop/products/${id}/`)
       .then((response) => response.json())
       .then((data) => {
         setProduct(data);
+        setLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching product details:", error);
+        setLoading(false);
       });
   }, [id]);
 
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </div>
+    );
+  }
+
   if (!product) {
-    return <div>Loading...</div>;
+    return (
+      <Typography variant="h6" color="text.secondary">
+        Product not found.
+      </Typography>
+    );
   }
 
   return (
-    <div>
-      <h2>Detailed product information</h2>
-      <h3>{product.title}</h3>
-      <p>Price: {product.price}$</p>
-      <p>Description: {product.description || "Нет описания"}</p>
-      <p>Manufacturer: {product.manufacturer || "Не указан"}</p>
-      <p>Category: {product.category}</p>
-      <p>Inventory: {product.inventory}</p>
-    </div>
+    <Card>
+      <CardContent>
+        <Typography variant="h5" component="div">
+          Detailed product information
+        </Typography>
+        <Typography variant="h6" component="div">
+          {product.title}
+        </Typography>
+        <Typography color="text.secondary">
+          Price: {product.price}$
+        </Typography>
+        <Typography variant="body2">
+          Description: {product.description || "No description available"}
+        </Typography>
+        <Typography variant="body2">
+          Manufacturer: {product.manufacturer || "Not specified"}
+        </Typography>
+        <Typography variant="body2">
+          Category: {product.category}
+        </Typography>
+        <Typography variant="body2">
+          Inventory: {product.inventory}
+        </Typography>
+      </CardContent>
+    </Card>
   );
 };
 

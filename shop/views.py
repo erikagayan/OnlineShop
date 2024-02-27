@@ -29,7 +29,7 @@ class CategoryViewSet(
     serializer_class = CategorySerializer
     permission_classes = [IsAuthenticated, IsStaffOrReadOnly]
 
-    @method_decorator(cache_page(60 * 5))
+    @method_decorator(cache_page(10))
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
@@ -98,7 +98,7 @@ class ProductViewSet(
             )
         serializer.save()
 
-    @method_decorator(cache_page(60 * 5))
+    @method_decorator(cache_page(10))
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
@@ -154,6 +154,6 @@ class CartViewSet(
             product.inventory -= quantity_diff
             product.save()
 
-    @method_decorator(cache_page(60 * 5))
+    @method_decorator(cache_page(10))
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)

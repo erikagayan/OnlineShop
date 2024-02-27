@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { Container, Typography, TextField, Button, List, ListItem, ListItemText } from '@mui/material';
 
 interface Category {
   id: number;
@@ -9,7 +10,7 @@ interface Category {
 const Categories: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [newCategoryName, setNewCategoryName] = useState<string>('');
-  
+
   const fetchCategories = async () => {
     try {
       const response = await axios.get('http://localhost:8000/api/shop/categories/');
@@ -36,30 +37,31 @@ const Categories: React.FC = () => {
   };
 
   return (
-    <div className="container mt-5">
-      <h2>List of categories</h2>
-      <ul>
+    <Container sx={{ mt: 5 }}>
+      <Typography variant="h5" gutterBottom component="div">
+      List of categories
+      </Typography>
+      <List>
         {categories.map((category) => (
-          <li key={category.id}>{category.name}</li>
+          <ListItem key={category.id} component="div" disablePadding>
+            <ListItemText primary={category.name} />
+          </ListItem>
         ))}
-      </ul>
-      <div className="mb-3">
-        <label htmlFor="newCategoryName" className="form-label">New category</label>
-        <input
-          type="text"
-          className="form-control"
-          id="newCategoryName"
+      </List>
+      <div>
+        <TextField
+          label="New category"
+          variant="outlined"
+          fullWidth
           value={newCategoryName}
           onChange={(e) => setNewCategoryName(e.target.value)}
+          sx={{ mb: 2 }}
         />
-      </div>
-      <button
-        className="btn btn-primary"
-        onClick={handleCreateCategory}
-      >
+        <Button variant="contained" onClick={handleCreateCategory}>
         Create a category
-      </button>
-    </div>
+        </Button>
+      </div>
+    </Container>
   );
 };
 

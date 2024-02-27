@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Container, Typography, CircularProgress, Alert } from '@mui/material';
 
 interface UserProfileData {
   id: number;
@@ -18,7 +19,7 @@ const UserProfile: React.FC = () => {
         const response = await axios.get('http://localhost:8000/api/users/me/', {
           headers: {
             Authorization: `Bearer YOUR_ACCESS_TOKEN`
-          }
+          },
         });
         setProfileData(response.data);
       } catch (error) {
@@ -36,24 +37,26 @@ const UserProfile: React.FC = () => {
   }, []);
 
   if (isLoading) {
-    return <div>Загрузка...</div>;
+    return <Container><CircularProgress /></Container>;
   }
 
   if (error) {
-    return <div className="alert alert-danger">{error}</div>;
+    return <Alert severity="error">{error}</Alert>;
   }
 
   return (
-    <div className="container mt-5">
-      <h2>User Profile</h2>
+    <Container sx={{ mt: 5 }}>
+      <Typography variant="h4" component="h2" gutterBottom>
+        User Profile
+      </Typography>
       {profileData && (
-        <div className="profile-info">
-          <p><strong>ID:</strong> {profileData.id}</p>
-          <p><strong>Username:</strong> {profileData.username}</p>
-          <p><strong>Email:</strong> {profileData.email}</p>
+        <div>
+          <Typography variant="body1"><strong>ID:</strong> {profileData.id}</Typography>
+          <Typography variant="body1"><strong>Username:</strong> {profileData.username}</Typography>
+          <Typography variant="body1"><strong>Email:</strong> {profileData.email}</Typography>
         </div>
       )}
-    </div>
+    </Container>
   );
 };
 
