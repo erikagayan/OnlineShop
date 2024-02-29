@@ -1,30 +1,41 @@
 version: '3.8'
+
 services:
-  postgres:
-    container_name: container-pg
-    image: postgres
-    hostname: localhost
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5432:5432"
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: root
-      POSTGRES_DB: test_db
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    restart: unless-stopped
 
-  pgadmin:
-    container_name: container-pgadmin
-    image: dpage/pgadmin4
-    depends_on:
-      - postgres
+  redis:
+    image: redis:alpine
     ports:
-      - "5050:80"
+      - "6379:6379"
+
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/online_shop
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: root
-    restart: unless-stopped
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: db
+      DB_PORT: ${DB_PORT}
+      SECRET_KEY: ${SECRET_KEY}
+      DEBUG: 'True'
+      RUNNING_IN_DOCKER: 'True'
 
 volumes:
-  postgres-data:
+  postgres_data:

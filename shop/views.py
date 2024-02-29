@@ -1,8 +1,10 @@
 from django.db import transaction
+from django.utils.decorators import method_decorator
 from rest_framework import viewsets, mixins, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.views.decorators.cache import cache_page
 
 from shop.permissions import IsStaffOrReadOnly, IsOwnerOrStaff
 from shop.serializers import (
@@ -26,6 +28,10 @@ class CategoryViewSet(
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAuthenticated, IsStaffOrReadOnly]
+
+    @method_decorator(cache_page(10))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class ProductViewSet(
@@ -92,6 +98,10 @@ class ProductViewSet(
             )
         serializer.save()
 
+    @method_decorator(cache_page(10))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 class CartViewSet(
     mixins.ListModelMixin,
@@ -143,3 +153,7 @@ class CartViewSet(
                 raise ValidationError("Not enough stock.")
             product.inventory -= quantity_diff
             product.save()
+
+    @method_decorator(cache_page(10))
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
