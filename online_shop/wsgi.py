@@ -1,16 +1,7 @@
-"""
-WSGI config for online_shop project.
-
-It exposes the WSGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/5.0/howto/deployment/wsgi/
-"""
-
 import os
-
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "online_shop.settings")
+settings_module = "online_shop.deployment" if "WEBSITE_HOSTNAME" in os.environ else "online_shop.settings"
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_module)
 
 application = get_wsgi_application()
