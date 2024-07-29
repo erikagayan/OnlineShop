@@ -3,6 +3,7 @@ from django.test import TestCase
 
 
 class UserTestCase(TestCase):
+    """Unittest for User model"""
     def setUp(self):
         self.email = "test@example.com"
         self.username = "testuser"
