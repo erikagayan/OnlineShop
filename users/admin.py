@@ -1,7 +1,7 @@
-from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from users.models import User
+from django.contrib import admin
 from django.utils.translation import gettext as _
+from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
 
 @admin.register(User)
@@ -29,16 +29,3 @@ class UserAdmin(DjangoUserAdmin):
     list_display = ("email", "first_name", "last_name", "is_moderator", "is_manager")
     search_fields = ("email", "first_name", "last_name")
     ordering = ("email",)
-
-
-"""
-class UserAdmin(UserAdmin):
-    list_display = ("username", "email", "is_moderator", "is_manager")
-    fieldsets = (
-        (None, {"fields": ("username", "email", "password")}),
-        (
-            "Permissions",
-            {"fields": ("is_moderator", "is_manager", "is_staff", "groups")},
-        ),
-    )
-"""
