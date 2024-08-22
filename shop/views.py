@@ -1,27 +1,21 @@
 import requests
 from django.db import transaction
-from django.utils.decorators import method_decorator
-from rest_framework import viewsets, mixins, status
-from rest_framework.authentication import BaseAuthentication
-from rest_framework.exceptions import ValidationError, AuthenticationFailed
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from django.views.decorators.cache import cache_page
 from rest_framework.views import APIView
-from rest_framework_simplejwt.authentication import JWTAuthentication
-
+from rest_framework.response import Response
+from shop.models import Product, Category, Cart
+from rest_framework import viewsets, mixins, status
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import BaseAuthentication
 from shop.permissions import IsStaffOrReadOnly, IsOwnerOrStaff
+from rest_framework.exceptions import ValidationError, AuthenticationFailed
 from shop.serializers import (
     ProductSerializer,
     ProductListSerializer,
     CategorySerializer,
     CartSerializer,
 )
-from shop.models import Product, Category, Cart
-
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 class CategoryViewSet(
