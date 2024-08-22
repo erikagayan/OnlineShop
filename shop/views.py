@@ -1,4 +1,3 @@
-import requests
 from django.db import transaction
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -6,10 +5,10 @@ from shop.models import Product, Category, Cart
 from rest_framework import viewsets, mixins, status
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import BaseAuthentication
+from shop.authentication import MicroserviceJWTAuthentication
 from shop.permissions import IsStaffOrReadOnly, IsOwnerOrStaff
-from rest_framework.exceptions import ValidationError, AuthenticationFailed
 from shop.serializers import (
     ProductSerializer,
     ProductListSerializer,
@@ -28,6 +27,7 @@ class CategoryViewSet(
 ):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    authentication_classes = [MicroserviceJWTAuthentication]
     permission_classes = [IsAuthenticated, IsStaffOrReadOnly]
 
     @method_decorator(cache_page(10))
@@ -136,33 +136,6 @@ class CartViewSet(viewsets.ModelViewSet):
             product.inventory -= quantity_diff
             product.save()
 
-
-
-class MicroserviceUser:
-    def __init__(self, user_data):
-        self.user_data = user_data
-        self.is_authenticated = True  # Все пользователи, прошедшие аутентификацию, считаются аутентифицированными
-
-    def __getattr__(self, item):
-        return self.user_data.get(item, None)
-
-    def __str__(self):
-        return self.user_data.get('email', 'Unknown')
-
-class MicroserviceJWTAuthentication(BaseAuthentication):
-    def authenticate(self, request):
-        token = request.headers.get('Authorization')
-        if not token:
-            return None
-
-        try:
-            response = requests.get('http://localhost:8000/api/users/me/', headers={'Authorization': token})
-            response.raise_for_status()
-        except requests.exceptions.RequestException:
-            raise AuthenticationFailed('Failed to authenticate with microservice')
-
-        user_data = response.json()
-        return (MicroserviceUser(user_data), None)
 
 class UserInfoView(APIView):
     authentication_classes = [MicroserviceJWTAuthentication]

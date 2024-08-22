@@ -142,6 +142,9 @@ REST_FRAMEWORK = {
         "drf_spectacular.openapi.AutoSchema",
 }
 
+# 1 day like JWT life time
+SESSION_COOKIE_AGE = 86400
+
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=3),
