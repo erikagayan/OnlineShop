@@ -1,10 +1,14 @@
+import requests
 from django.db import transaction
 from django.utils.decorators import method_decorator
 from rest_framework import viewsets, mixins, status
-from rest_framework.exceptions import ValidationError
+from rest_framework.authentication import BaseAuthentication
+from rest_framework.exceptions import ValidationError, AuthenticationFailed
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.views.decorators.cache import cache_page
+from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from shop.permissions import IsStaffOrReadOnly, IsOwnerOrStaff
 from shop.serializers import (
@@ -14,7 +18,10 @@ from shop.serializers import (
     CartSerializer,
 )
 from shop.models import Product, Category, Cart
-from users.models import User
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class CategoryViewSet(
@@ -103,37 +110,18 @@ class ProductViewSet(
         return super().list(request, *args, **kwargs)
 
 
-class CartViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet,
-):
+class CartViewSet(viewsets.ModelViewSet):
     queryset = Cart.objects.all().order_by("id")
     serializer_class = CartSerializer
     permission_classes = [IsAuthenticated, IsOwnerOrStaff]
 
     def get_queryset(self):
-        """Only the current user's shopping carts."""
-        user = self.request.user
-        return Cart.objects.filter(user=user).order_by("id")
-
-        """Only for documentation"""
-        @extend_schema(
-            parameters=[
-                OpenApiParameter(
-                    "user",
-                    type={"type": "list", "items": {"type": "number"}},
-                )
-            ]
-        )
-        def list(self, request, *args, **kwargs):
-            return super().list(request, *args, **kwargs)
+        """Получаем корзину только текущего пользователя."""
+        user_id = self.request.user.id
+        return Cart.objects.filter(user_id=user_id).order_by("id")
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        serializer.save(user_id=self.request.user.id)
         with transaction.atomic():
             cart = serializer.save()
             product = cart.items
@@ -154,6 +142,37 @@ class CartViewSet(
             product.inventory -= quantity_diff
             product.save()
 
-    @method_decorator(cache_page(10))
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
+
+
+class MicroserviceUser:
+    def __init__(self, user_data):
+        self.user_data = user_data
+        self.is_authenticated = True  # Все пользователи, прошедшие аутентификацию, считаются аутентифицированными
+
+    def __getattr__(self, item):
+        return self.user_data.get(item, None)
+
+    def __str__(self):
+        return self.user_data.get('email', 'Unknown')
+
+class MicroserviceJWTAuthentication(BaseAuthentication):
+    def authenticate(self, request):
+        token = request.headers.get('Authorization')
+        if not token:
+            return None
+
+        try:
+            response = requests.get('http://localhost:8000/api/users/me/', headers={'Authorization': token})
+            response.raise_for_status()
+        except requests.exceptions.RequestException:
+            raise AuthenticationFailed('Failed to authenticate with microservice')
+
+        user_data = response.json()
+        return (MicroserviceUser(user_data), None)
+
+class UserInfoView(APIView):
+    authentication_classes = [MicroserviceJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response(request.user.user_data, status=status.HTTP_200_OK)
