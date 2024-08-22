@@ -1,7 +1,7 @@
 import os
-from datetime import timedelta
 from pathlib import Path
 from decouple import config
+from datetime import timedelta
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,7 +20,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 INSTALLED_APPS = [
-    # "django.contrib.admin",
+    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -30,7 +30,6 @@ INSTALLED_APPS = [
     "django_password_validators.password_history",
     "drf_spectacular",
     "rest_framework",
-    # "rest_framework_simplejwt",
     "corsheaders",
     "shop",
     "debug_toolbar",
@@ -115,7 +114,6 @@ AUTH_PASSWORD_VALIDATORS = [
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        #"LOCATION": "redis://redis:6379/1",
         "LOCATION": "redis://127.0.0.1:6379/",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
