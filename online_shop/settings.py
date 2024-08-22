@@ -14,9 +14,13 @@ ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0"]
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "http://localhost:8001",
+]
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
+    # "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -26,10 +30,9 @@ INSTALLED_APPS = [
     "django_password_validators.password_history",
     "drf_spectacular",
     "rest_framework",
-    "rest_framework_simplejwt",
+    # "rest_framework_simplejwt",
     "corsheaders",
     "shop",
-    "users",
     "debug_toolbar",
 ]
 
@@ -43,10 +46,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-]
-
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -84,7 +83,6 @@ DATABASES = {
     }
 }
 
-AUTH_USER_MODEL = "users.User"
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -142,10 +140,6 @@ MEDIA_URL = "/media/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
-
     "DEFAULT_SCHEMA_CLASS":
         "drf_spectacular.openapi.AutoSchema",
 }

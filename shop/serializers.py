@@ -1,3 +1,4 @@
+import requests
 from rest_framework import serializers
 from shop.models import Product, Category, Cart
 
@@ -40,7 +41,7 @@ class CartSerializer(serializers.ModelSerializer):
         model = Cart
         fields = [
             "id",
-            "user",
+            "user_id",
             "item_title",
             "items",
             "quantity",
@@ -48,23 +49,16 @@ class CartSerializer(serializers.ModelSerializer):
             "updated_at",
             "total_cost",
         ]
-        read_only_fields = ["user", "item_title", "total_cost"]
-        extra_kwargs = {"items": {"write_only": True}}  # Making items writable only
+        read_only_fields = ["item_title", "total_cost"]
+        extra_kwargs = {"items": {"write_only": True}}
 
     def get_total_cost(self, obj):
-        """Calculating the total amount"""
         total = 0
-        for item in Cart.objects.filter(user=obj.user):
+        for item in Cart.objects.filter(user_id=obj.user_id):
             total += item.items.price * item.quantity
         return total
 
-    def get_item_title(self, obj):
-        return obj.items.title if obj.items else None
-
     def validate(self, data):
-        """
-        Checking if there are enough goods in stock.
-        """
         if data["quantity"] > data["items"].inventory:
             available_stock = data["items"].inventory
             raise serializers.ValidationError(

@@ -3,7 +3,6 @@ import uuid
 
 from django.conf import settings
 from django.db import models
-from django.utils.text import slugify
 from rest_framework.exceptions import ValidationError
 
 from shop.countries import COUNTRIES
@@ -52,15 +51,11 @@ class Product(models.Model):
 
 
 class Cart(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
-    )
+    user_id = models.UUIDField()
     items = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True)
     quantity = models.IntegerField(null=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return "{} - {} - {} - {} - {}".format(
-            self.user, self.items, self.quantity, self.created_at, self.updated_at
-        )
+        return f"{self.user_id} - {self.items} - {self.quantity} - {self.created_at} - {self.updated_at}"
