@@ -19,6 +19,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8001",
 ]
 
+MICROSERVICE_USER_URL = 'http://localhost:8000'
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -49,7 +51,9 @@ MIDDLEWARE = [
 
 CORS_ALLOW_ALL_ORIGINS = True
 
+
 ROOT_URLCONF = "online_shop.urls"
+
 
 TEMPLATES = [
     {
@@ -67,7 +71,9 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = "online_shop.wsgi.application"
+
 
 RUNNING_IN_DOCKER = os.environ.get("RUNNING_IN_DOCKER", "False") == "True"
 
@@ -82,6 +88,8 @@ DATABASES = {
     }
 }
 
+
+AUTH_USER_MODEL = "shop.AdminUser"
 
 AUTH_PASSWORD_VALIDATORS = [
     {
