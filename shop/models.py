@@ -3,6 +3,11 @@ from django.db import models
 from shop.countries import COUNTRIES
 from rest_framework.exceptions import ValidationError
 
+from django.contrib import admin
+import requests
+from django.conf import settings
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+
 
 class Category(models.Model):
     name = models.CharField(max_length=255)
@@ -55,3 +60,51 @@ class Cart(models.Model):
 
     def __str__(self):
         return f"{self.user_id} - {self.items} - {self.quantity} - {self.created_at} - {self.updated_at}"
+
+
+class MicroserviceUserProxy(models.Model):
+    id = models.UUIDField(primary_key=True)
+    email = models.EmailField()
+    username = models.CharField(max_length=255)
+    is_manager = models.BooleanField()
+    is_moderator = models.BooleanField()
+
+    class Meta:
+        managed = False  # No database table creation or deletion operations will be performed for this model.
+        verbose_name = 'User from Microservice'
+        verbose_name_plural = 'Users from Microservice'
+
+    def __str__(self):
+        return self.email
+
+
+"""Customised model for the administrator"""
+class AdminManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError("The Email field must be set")
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        return self.create_user(email, password, **extra_fields)
+
+
+class AdminUser(AbstractBaseUser, PermissionsMixin):
+    email = models.EmailField(unique=True)
+    is_staff = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
+
+    objects = AdminManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+
+    def __str__(self):
+        return self.email
