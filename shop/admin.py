@@ -9,9 +9,22 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.admin.helpers import AdminForm
 
 class UserEditForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput, label='Password', required=False)
+    password_confirmation = forms.CharField(widget=forms.PasswordInput, label='Confirm Password', required=False)
+
     class Meta:
         model = MicroserviceUserProxy
-        fields = ['email', 'username', 'is_manager', 'is_moderator']
+        fields = ['email', 'username', 'is_manager', 'is_moderator', 'password', 'password_confirmation']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get("password")
+        password_confirmation = cleaned_data.get("password_confirmation")
+
+        if password or password_confirmation:
+            if password != password_confirmation:
+                self.add_error('password_confirmation', "Passwords do not match")
+        return cleaned_data
 
 class UserAddForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput, label='Password')
@@ -34,6 +47,7 @@ class UserAddForm(forms.ModelForm):
 class MicroserviceUserQuerySet:
     def __init__(self, data):
         self.data = data
+        self.model = MicroserviceUserProxy
 
     def __iter__(self):
         return iter(self.data)
@@ -69,7 +83,6 @@ class MicroserviceUserAdmin(admin.ModelAdmin):
     actions = ['delete_users']
     form = UserEditForm
 
-    # Добавляем add_fieldsets для отображения дополнительных полей при добавлении пользователя
     add_fieldsets = (
         (None, {
             'fields': ('email', 'username', 'is_manager', 'is_moderator', 'password', 'password_confirmation'),
@@ -88,6 +101,34 @@ class MicroserviceUserAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return MicroserviceUserQuerySet([])
+
+    def get_object(self, request, object_id, from_field=None):
+        token = request.session.get('auth_token') or request.headers.get('Authorization')
+        if not token:
+            return None
+
+        if token.startswith('Bearer '):
+            token = token.split(' ', 1)[1]
+
+        headers = {'Authorization': f'Bearer {token}'}
+
+        try:
+            user_url = f'{settings.MICROSERVICE_USER_URL}/api/users/users/{object_id}/'
+            response = requests.get(user_url, headers=headers)
+
+            if response.status_code == 200:
+                user_data = response.json()
+                return MicroserviceUserProxy(
+                    id=user_data['id'],
+                    email=user_data['email'],
+                    username=user_data['username'],
+                    is_manager=user_data['is_manager'],
+                    is_moderator=user_data['is_moderator']
+                )
+            else:
+                return None
+        except Exception:
+            return None
 
     def changelist_view(self, request, extra_context=None):
         response = super().changelist_view(request, extra_context)
@@ -125,14 +166,60 @@ class MicroserviceUserAdmin(admin.ModelAdmin):
             response.context_data.update(extra_context)
 
         except Exception as e:
-            print(f"Unexpected error: {e}")
             self.message_user(request, f"Unexpected error: {e}", level='error')
         return response
 
+    def save_model(self, request, obj, form, change):
+        token = request.session.get('auth_token') or request.headers.get('Authorization')
+        if not token:
+            self.message_user(request, "Authorization token is missing.", level='error')
+            return
+
+        if token.startswith('Bearer '):
+            token = token.split(' ', 1)[1]
+
+        headers = {'Authorization': f'Bearer {token}'}
+        user_data = form.cleaned_data
+
+        if not user_data['password']:
+            user_data.pop('password')
+            user_data.pop('password_confirmation', None)
+
+        try:
+            response = requests.put(
+                f'{settings.MICROSERVICE_USER_URL}/api/users/users/{obj.id}/',
+                headers=headers,
+                json=user_data
+            )
+            if response.status_code in [200, 204]:
+                self.message_user(request, "User updated successfully.")
+            else:
+                self.message_user(request, f"Error updating user: {response.status_code}", level='error')
+        except Exception as e:
+            self.message_user(request, f"Unexpected error: {e}", level='error')
+
+    def delete_model(self, request, obj):
+        """Переопределяем метод delete_model для удаления пользователя через микросервис."""
+        token = request.session.get('auth_token') or request.headers.get('Authorization')
+        if not token:
+            self.message_user(request, "Authorization token is missing.", level='error')
+            return
+
+        if token.startswith('Bearer '):
+            token = token.split(' ', 1)[1]
+
+        headers = {'Authorization': f'Bearer {token}'}
+
+        try:
+            response = requests.delete(f'{settings.MICROSERVICE_USER_URL}/api/users/users/{obj.id}/', headers=headers)
+            if response.status_code == 204:
+                self.message_user(request, f"User {obj.email} deleted successfully.")
+            else:
+                self.message_user(request, f"Error deleting user: {response.status_code}", level='error')
+        except Exception as e:
+            self.message_user(request, f"Unexpected error: {e}", level='error')
+
     def add_view(self, request, form_url='', extra_context=None):
-        """
-        Custom view to handle the addition of a new user.
-        """
         if request.method == 'POST':
             form = UserAddForm(request.POST)
             if form.is_valid():
@@ -146,7 +233,7 @@ class MicroserviceUserAdmin(admin.ModelAdmin):
 
                 headers = {'Authorization': f'Bearer {token}'}
                 user_data = form.cleaned_data
-                user_data.pop('password_confirmation')  # Убираем поле подтверждения пароля
+                user_data.pop('password_confirmation')
 
                 try:
                     response = requests.post(
@@ -165,10 +252,8 @@ class MicroserviceUserAdmin(admin.ModelAdmin):
         else:
             form = UserAddForm()
 
-        # Создание объекта AdminForm для рендеринга формы в админ-панели
         admin_form = AdminForm(form, self.add_fieldsets, self.prepopulated_fields, self.readonly_fields, model_admin=self)
 
-        # Обновляем контекст для метода render_change_form
         context = {
             'adminform': admin_form,
             'form': form,
@@ -182,8 +267,8 @@ class MicroserviceUserAdmin(admin.ModelAdmin):
             'has_view_permission': True,
             'show_save_and_add_another': False,
             'show_save_and_continue': False,
-            'inline_admin_formsets': [],  # Обязательно добавляем этот ключ в контекст
-            'errors': form.errors,  # Отображение ошибок формы
+            'inline_admin_formsets': [],
+            'errors': form.errors,
         }
 
         return self.render_change_form(request, context, add=True, change=False, form_url=form_url)
@@ -203,9 +288,13 @@ class MicroserviceUserAdmin(admin.ModelAdmin):
                 headers = {'Authorization': f'Bearer {token}'}
                 user_data = form.cleaned_data
 
+                if not user_data['password']:
+                    user_data.pop('password')
+                    user_data.pop('password_confirmation', None)
+
                 try:
                     response = requests.put(
-                        f'{settings.MICROSERVICE_USER_URL}/api/users/{user_id}/',
+                        f'{settings.MICROSERVICE_USER_URL}/api/users/users/{user_id}/',
                         headers=headers,
                         json=user_data
                     )
@@ -229,17 +318,37 @@ class MicroserviceUserAdmin(admin.ModelAdmin):
             headers = {'Authorization': f'Bearer {token}'}
 
             try:
-                response = requests.get(f'{settings.MICROSERVICE_USER_URL}/api/users/{user_id}/', headers=headers)
+                response = requests.get(f'{settings.MICROSERVICE_USER_URL}/api/users/users/{user_id}/', headers=headers)
                 if response.status_code == 200:
                     user_data = response.json()
                     form = UserEditForm(initial=user_data)
-                    return self.render_change_form(request, context={'form': form, 'user_id': user_id})
                 else:
                     self.message_user(request, f"Error fetching user: {response.status_code}", level='error')
+                    return HttpResponseRedirect('..')
             except Exception as e:
                 self.message_user(request, f"Unexpected error: {e}", level='error')
+                return HttpResponseRedirect('..')
 
-            return HttpResponseRedirect('..')
+        admin_form = AdminForm(form, self.add_fieldsets, self.prepopulated_fields, self.readonly_fields, model_admin=self)
+
+        context = {
+            'adminform': admin_form,
+            'form': form,
+            'add': False,
+            'change': True,
+            'is_popup': False,
+            'save_as': False,
+            'has_add_permission': False,
+            'has_change_permission': True,
+            'has_delete_permission': True,
+            'has_view_permission': True,
+            'show_save_and_add_another': False,
+            'show_save_and_continue': False,
+            'inline_admin_formsets': [],
+            'errors': form.errors,
+        }
+
+        return self.render_change_form(request, context, add=False, change=True, form_url=form_url)
 
     def delete_users(self, request, queryset):
         for user in queryset:
@@ -254,7 +363,7 @@ class MicroserviceUserAdmin(admin.ModelAdmin):
             headers = {'Authorization': f'Bearer {token}'}
 
             try:
-                response = requests.delete(f'{settings.MICROSERVICE_USER_URL}/api/users/{user.id}/', headers=headers)
+                response = requests.delete(f'{settings.MICROSERVICE_USER_URL}/api/users/users/{user.id}/', headers=headers)
                 if response.status_code == 204:
                     self.message_user(request, f"User {user.email} deleted successfully.")
                 else:
