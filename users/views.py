@@ -11,23 +11,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 class CreateUserView(generics.CreateAPIView):
     """Create a new user in the system"""
+
     serializer_class = UserSerializer
-
-
-class CreateTokenView(TokenObtainPairView):
-    """Create a new token for user"""
-    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
-
-
-class ManageUserView(generics.RetrieveUpdateAPIView):
-    """Manage the authenticated user"""
-    serializer_class = UserSerializer
-    authentication_classes = (CookieJWTAuthentication,)
-    permission_classes = (IsAuthenticated,)
-
-    # return auth user
-    def get_object(self):
-        return self.request.user
 
 
 class CookieTokenObtainPairView(TokenObtainPairView):
@@ -35,29 +20,43 @@ class CookieTokenObtainPairView(TokenObtainPairView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        refresh = serializer.validated_data['refresh']
-        access = serializer.validated_data['access']
+        refresh = serializer.validated_data["refresh"]
+        access = serializer.validated_data["access"]
 
-        response = JsonResponse({
-            "refresh": str(refresh),
-            "access": str(access),
-        })
+        response = JsonResponse(
+            {
+                "refresh": str(refresh),
+                "access": str(access),
+            }
+        )
 
         response.set_cookie(
-            key='access',
+            key="access",
             value=str(access),
             httponly=True,
-            secure=False,      # Оставляем False для http
-            samesite='Lax',    # Вместо 'None'
+            secure=False,
+            samesite="Lax",
             max_age=24 * 60 * 60,
         )
         response.set_cookie(
-            key='refresh',
+            key="refresh",
             value=str(refresh),
             httponly=True,
-            secure=False,     # Оставляем False для http
-            samesite='Lax',   # Вместо 'None'
+            secure=False,
+            samesite="Lax",
             max_age=3 * 24 * 60 * 60,
         )
 
         return response
+
+
+class ManageUserView(generics.RetrieveUpdateAPIView):
+    """Manage the authenticated user"""
+
+    serializer_class = UserSerializer
+    authentication_classes = (CookieJWTAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    # return auth user
+    def get_object(self):
+        return self.request.user
