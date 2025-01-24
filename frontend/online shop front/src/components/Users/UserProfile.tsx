@@ -17,9 +17,8 @@ const UserProfile: React.FC = () => {
     const fetchProfileData = async () => {
       try {
         const response = await axios.get('http://localhost:8000/api/users/me/', {
-          headers: {
-            Authorization: `Bearer YOUR_ACCESS_TOKEN`
-          },
+          // ВАЖНО: включаем отправку и приём cookie
+          withCredentials: true
         });
         setProfileData(response.data);
       } catch (error) {
