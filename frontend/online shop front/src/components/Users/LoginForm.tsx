@@ -11,39 +11,44 @@ import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Alert from '@mui/material/Alert';
 
-const LoginForm: React.FC = () => {
+// Вариант: глобально включить отправку cookie во всех axios-запросах
+// axios.defaults.withCredentials = true;
+
+const LoginForm = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-
-  const [tokens, setTokens] = useState<{ access: string, refresh: string } | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Считываем поля формы
+  const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  // Отправляем запрос при сабмите
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
 
     try {
+      // Важно: указываем { withCredentials: true }, чтобы куки установились
       const response = await axios.post(
         "http://localhost:8000/api/users/login/",
-        formData
+        formData,
+        { withCredentials: true }
       );
-      if (response.data.access && response.data.refresh) {
-        setTokens({ access: response.data.access, refresh: response.data.refresh });
-      } else {
-        setErrorMessage("Error: Tokens not received.");
+
+      // Если сервер отвечает 200 OK, значит Set-Cookie был успешно отправлен
+      if (response.status === 200) {
+        console.log("Login success!");
+        // При желании можно сразу запросить профиль или перейти на страницу /profile
+        // navigate("/profile");
       }
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
-        setErrorMessage(
-          "Login attempt failed. Please check your credentials."
-        );
+        setErrorMessage("Login attempt failed. Please check your credentials.");
       } else {
         setErrorMessage("Network or server error.");
       }
@@ -56,9 +61,11 @@ const LoginForm: React.FC = () => {
         <Typography component="h1" variant="h5">
           Log in
         </Typography>
+
         {errorMessage && (
           <Alert severity="error">{errorMessage}</Alert>
         )}
+
         <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
           <TextField
             variant="outlined"
@@ -86,6 +93,7 @@ const LoginForm: React.FC = () => {
             value={formData.password}
             onChange={handleChange}
           />
+
           <Button
             type="submit"
             fullWidth
@@ -95,18 +103,9 @@ const LoginForm: React.FC = () => {
             Login
           </Button>
         </Box>
-        {tokens && (
-          <Box sx={{ wordBreak: "break-all", backgroundColor: 'success.light', p: 2, mt: 2 }}>
-            <Typography variant="body1" component="p">
-              Access Token: <Typography component="span" color="text.primary" variant="body1" fontWeight="fontWeightBold">{tokens.access}</Typography>
-            </Typography>
-            <Typography variant="body1" component="p">
-              Refresh Token: <Typography component="span" color="text.primary" variant="body1" fontWeight="fontWeightBold">{tokens.refresh}</Typography>
-            </Typography>
-          </Box>
-        )}
+
         <Typography variant="body2" color="textSecondary" align="center" sx={{ mt: 3 }}>
-          No account?{' '}
+          No account?{" "}
           <Link component={RouterLink} to="/user/register" variant="body2">
             Sign up
           </Link>
