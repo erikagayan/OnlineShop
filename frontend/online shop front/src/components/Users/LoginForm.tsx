@@ -11,8 +11,6 @@ import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Alert from '@mui/material/Alert';
 
-// Вариант: глобально включить отправку cookie во всех axios-запросах
-// axios.defaults.withCredentials = true;
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -22,29 +20,23 @@ const LoginForm = () => {
   });
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Считываем поля формы
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Отправляем запрос при сабмите
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
 
     try {
-      // Важно: указываем { withCredentials: true }, чтобы куки установились
       const response = await axios.post(
         "http://localhost:8000/api/users/login/",
         formData,
         { withCredentials: true }
       );
 
-      // Если сервер отвечает 200 OK, значит Set-Cookie был успешно отправлен
       if (response.status === 200) {
         console.log("Login success!");
-        // При желании можно сразу запросить профиль или перейти на страницу /profile
-        // navigate("/profile");
       }
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {

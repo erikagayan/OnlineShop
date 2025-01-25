@@ -8,7 +8,7 @@ class CookieJWTAuthentication(JWTAuthentication):
 
     def authenticate(self, request):
         # Trying to get a token from a cookie
-        token = request.COOKIES.get('access')
+        token = request.COOKIES.get("access")
 
         if token is not None:
             # Verify and validate the token (same logic as in the base class)
