@@ -13,7 +13,9 @@ const Categories: React.FC = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/shop/categories/');
+      const response = await axios.get('http://localhost:8000/api/shop/categories/', {
+        withCredentials: true, // Добавляем эту опцию
+      });
       setCategories(response.data);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -26,9 +28,11 @@ const Categories: React.FC = () => {
 
   const handleCreateCategory = async () => {
     try {
-      await axios.post('http://localhost:8000/api/shop/categories/', {
-        name: newCategoryName,
-      });
+      await axios.post(
+        'http://localhost:8000/api/shop/categories/',
+        { name: newCategoryName },
+        { withCredentials: true } // Добавляем эту опцию
+      );
       setNewCategoryName('');
       fetchCategories();
     } catch (error) {

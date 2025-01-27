@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Typography, CircularProgress, Card, CardContent } from "@mui/material";
+import axios from "axios"; // Импорт axios
 
 interface Product {
   id: number;
@@ -18,21 +19,25 @@ const DetailProduct: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    fetch(`http://localhost:8000/api/shop/products/${id}/`)
-      .then((response) => response.json())
-      .then((data) => {
-        setProduct(data);
-        setLoading(false);
-      })
-      .catch((error) => {
+    const fetchProduct = async () => {
+      try {
+        const response = await axios.get<Product>(`http://localhost:8000/api/shop/products/${id}/`, {
+          withCredentials: true, // Добавляем опцию для отправки cookies
+        });
+        setProduct(response.data);
+      } catch (error) {
         console.error("Error fetching product details:", error);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchProduct();
   }, [id]);
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
         <CircularProgress />
       </div>
     );
@@ -55,21 +60,11 @@ const DetailProduct: React.FC = () => {
         <Typography variant="h6" component="div">
           {product.title}
         </Typography>
-        <Typography color="text.secondary">
-          Price: {product.price}$
-        </Typography>
-        <Typography variant="body2">
-          Description: {product.description || "No description available"}
-        </Typography>
-        <Typography variant="body2">
-          Manufacturer: {product.manufacturer || "Not specified"}
-        </Typography>
-        <Typography variant="body2">
-          Category: {product.category}
-        </Typography>
-        <Typography variant="body2">
-          Inventory: {product.inventory}
-        </Typography>
+        <Typography color="text.secondary">Price: {product.price}$</Typography>
+        <Typography variant="body2">Description: {product.description || "No description available"}</Typography>
+        <Typography variant="body2">Manufacturer: {product.manufacturer || "Not specified"}</Typography>
+        <Typography variant="body2">Category: {product.category}</Typography>
+        <Typography variant="body2">Inventory: {product.inventory}</Typography>
       </CardContent>
     </Card>
   );

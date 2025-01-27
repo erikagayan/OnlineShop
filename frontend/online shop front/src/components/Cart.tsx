@@ -28,7 +28,9 @@ const Cart = () => {
   useEffect(() => {
     const fetchCartItems = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/api/shop/carts/");
+        const response = await axios.get("http://localhost:8000/api/shop/carts/", {
+          withCredentials: true, // Отправка cookies
+        });
         setCartItems(response.data);
       } catch (error) {
         console.error("Ошибка при получении данных корзины:", error);
@@ -37,7 +39,9 @@ const Cart = () => {
 
     const fetchProducts = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/api/shop/products/");
+        const response = await axios.get("http://localhost:8000/api/shop/products/", {
+          withCredentials: true, // Отправка cookies
+        });
         setProducts(response.data);
       } catch (error) {
         console.error("Ошибка при получении списка продуктов:", error);
@@ -56,11 +60,23 @@ const Cart = () => {
     }
 
     try {
-      await axios.post("http://localhost:8000/api/shop/carts/", {
-        items: selectedProductId,
-        quantity,
-      });
+      await axios.post(
+        "http://localhost:8000/api/shop/carts/",
+        {
+          items: selectedProductId,
+          quantity,
+        },
+        {
+          withCredentials: true, // Отправка cookies
+        }
+      );
       alert("Product added to cart");
+
+      // Обновляем список корзины после добавления
+      const response = await axios.get("http://localhost:8000/api/shop/carts/", {
+        withCredentials: true, // Отправка cookies
+      });
+      setCartItems(response.data);
     } catch (error) {
       console.error("Ошибка при добавлении товара в корзину:", error);
     }
@@ -71,7 +87,7 @@ const Cart = () => {
   return (
     <Container sx={{ mt: 5 }}>
       <Typography variant="h4" gutterBottom>
-      Your shopping cart
+        Your shopping cart
       </Typography>
       <List>
         {cartItems.map((item) => (
@@ -85,7 +101,7 @@ const Cart = () => {
       </List>
 
       <Typography variant="h5" gutterBottom>
-      Add product to cart
+        Add product to cart
       </Typography>
       <form onSubmit={handleAddToCart}>
         <FormControl fullWidth sx={{ mb: 2 }}>
@@ -105,7 +121,7 @@ const Cart = () => {
         </FormControl>
         <FormControl fullWidth sx={{ mb: 2 }}>
           <TextField
-            label="Количество"
+            label="Quantity"
             type="number"
             value={quantity}
             onChange={e => setQuantity(Number(e.target.value))}

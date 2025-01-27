@@ -1,3 +1,4 @@
+import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { Typography, Button, List, ListItem, ListItemText, Link } from "@mui/material";
@@ -17,10 +18,12 @@ const ProductsList: React.FC = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/shop/products/")
-      .then((response) => response.json())
-      .then((data) => {
-        setProducts(data);
+    axios
+      .get<Product[]>("http://localhost:8000/api/shop/products/", {
+        withCredentials: true, // Добавляем эту опцию для отправки cookies
+      })
+      .then((response) => {
+        setProducts(response.data); // Типизированный ответ
       })
       .catch((error) => {
         console.error("Error fetching products:", error);
