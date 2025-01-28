@@ -1,94 +1,128 @@
-from django.test import TestCase
-from rest_framework.exceptions import ValidationError
-
+import pytest
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from shop.models import Category, Product, Cart
-from users.models import User
 
 
-class CategoryModelTest(TestCase):
-    def setUp(self):
-        Category.objects.create(name="Electronics")
-        Category.objects.create(name="Books")
+User = get_user_model()
 
-    """Test category creation"""
+# === FIXTURES ===
 
-    def test_category_creation(self):
+
+@pytest.fixture
+def create_categories(db):
+    """Fixture to create test categories."""
+    Category.objects.create(name="Electronics")
+    Category.objects.create(name="Books")
+
+
+@pytest.fixture
+def create_category(db):
+    """Fixture to create a test category."""
+    return Category.objects.create(name="Electronics")
+
+
+@pytest.fixture
+def create_product(db, create_categories):
+    """Fixture to create a test product."""
+    category = Category.objects.get(name="Electronics")
+    return Product.objects.create(
+        title="Laptop",
+        price=1000,
+        description="Powerful laptop",
+        manufacturer="Manufacturer",
+        category=category,
+        inventory=10,
+    )
+
+
+@pytest.fixture
+def create_user(db):
+    """Fixture to create a test user."""
+    return User.objects.create_user(
+        username="testuser", email="test@example.com", password="ValidPassword123!"
+    )
+
+
+@pytest.fixture
+def create_cart(db, create_user, create_categories):
+    """Fixture to create a test cart."""
+    category = Category.objects.get(
+        name="Electronics"
+    )  # Используем уже созданные категории
+    product = Product.objects.create(
+        title="Laptop",
+        price=1000,
+        description="Powerful laptop",
+        manufacturer="Manufacturer",
+        category=category,
+        inventory=10,
+    )
+    return Cart.objects.create(user=create_user, items=product, quantity=2)
+
+
+# === TESTS ===
+
+
+# --- CATEGORY TESTS ---
+@pytest.mark.category
+class TestCategory:
+    """Test suite for Category model."""
+
+    def test_category_creation(self, create_categories):
+        """Test category creation."""
         electronics = Category.objects.get(name="Electronics")
         books = Category.objects.get(name="Books")
-        self.assertEqual(electronics.name, "Electronics")
-        self.assertEqual(books.name, "Books")
+        assert electronics.name == "Electronics"
+        assert books.name == "Books"
 
-    """Test category str"""
-
-    def test_category_str(self):
+    def test_category_str(self, create_categories):
+        """Test category __str__ method."""
         electronics = Category.objects.get(name="Electronics")
-        self.assertEqual(str(electronics), "Electronics")
+        assert str(electronics) == "Electronics"
 
-    "Test category ordering"
-
-    def test_category_ordering(self):
+    def test_category_ordering(self, create_categories):
+        """Test category ordering."""
         categories = list(Category.objects.all())
-        self.assertLess(categories[0].name, categories[1].name)
+        assert categories[0].name < categories[1].name
 
 
-class ProductModelTest(TestCase):
-    def setUp(self):
-        category = Category.objects.create(name="Electronics")
-        Product.objects.create(
-            title="Laptop",
-            price=1000,
-            description="Powerful laptop",
-            manufacturer="Manufacturer",
-            category=category,
-            inventory=10,
-        )
+# --- PRODUCT TESTS ---
+@pytest.mark.product
+class TestProduct:
+    """Test suite for Product model."""
 
-    """Test product creation"""
-
-    def test_product_creation(self):
+    def test_product_creation(self, create_product):
+        """Test product creation."""
         product = Product.objects.get(title="Laptop")
-        self.assertEqual(product.title, "Laptop")
-        self.assertEqual(product.price, 1000)
-        self.assertEqual(product.description, "Powerful laptop")
-        self.assertEqual(product.manufacturer, "Manufacturer")
-        self.assertEqual(product.category.name, "Electronics")
-        self.assertEqual(product.inventory, 10)
+        assert product.title == "Laptop"
+        assert product.price == 1000
+        assert product.description == "Powerful laptop"
+        assert product.manufacturer == "Manufacturer"
+        assert product.category.name == "Electronics"
+        assert product.inventory == 10
 
-    """Test product str"""
-
-    def test_product_str(self):
+    def test_product_str(self, create_product):
+        """Test product __str__ method."""
         product = Product.objects.get(title="Laptop")
-        self.assertEqual(str(product), "Laptop")
+        assert str(product) == "Laptop"
 
-    """Test product inventory validation"""
-
-    def test_inventory_validation(self):
+    def test_inventory_validation(self, create_product):
+        """Test product inventory validation."""
         product = Product.objects.get(title="Laptop")
         product.inventory = -5
-        with self.assertRaises(ValidationError):
+        with pytest.raises(ValidationError):
             product.clean()
 
 
-class CartModelTest(TestCase):
-    def setUp(self):
-        user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="ValidPassword123!"
-        )
-        category = Category.objects.create(name="Electronics")
-        product = Product.objects.create(
-            title="Laptop",
-            price=1000,
-            description="Powerful laptop",
-            manufacturer="Manufacturer",
-            category=category,
-            inventory=10,
-        )
-        Cart.objects.create(user=user, items=product, quantity=2)
+# --- CART TESTS ---
+@pytest.mark.cart
+class TestCart:
+    """Test suite for Cart model."""
 
-    """Test cart creation"""
-
-    def test_cart_creation(self):
+    def test_cart_creation(self, create_cart):
+        """Test cart creation."""
         cart = Cart.objects.first()
-        self.assertEqual(cart.user.username, "testuser")
-        self.assertEqual(cart.items.title, "Laptop")
-        self.assertEqual(cart.quantity, 2)
+        assert cart.user.username == "testuser"
+        assert cart.items.title == "Laptop"
+        assert cart.quantity == 2

@@ -1,12 +1,8 @@
 import os
-import uuid
-
-from django.conf import settings
 from django.db import models
-from django.utils.text import slugify
-from rest_framework.exceptions import ValidationError
-
+from django.conf import settings
 from shop.countries import COUNTRIES
+from django.core.exceptions import ValidationError
 
 
 class Category(models.Model):
