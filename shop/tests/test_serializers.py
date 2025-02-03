@@ -1,4 +1,6 @@
+import pytest
 from django.test import TestCase
+from django.contrib.auth import get_user_model
 from shop.models import Category, Product, Cart
 from shop.serializers import (
     CategorySerializer,
@@ -9,105 +11,88 @@ from shop.serializers import (
 from users.models import User
 
 
-class CategorySerializerTest(TestCase):
-    def setUp(self):
-        self.category = Category.objects.create(name="Electronics")
-        self.serializer = CategorySerializer(instance=self.category)
-
-    """Test category serializer"""
-
-    def test_category_serializer(self):
-        data = self.serializer.data
-        self.assertEqual(data["id"], self.category.id)
-        self.assertEqual(data["name"], self.category.name)
+User = get_user_model()
 
 
-class ProductSerializerTest(TestCase):
-    def setUp(self):
-        category = Category.objects.create(name="Electronics")
-        self.product = Product.objects.create(
-            title="Laptop",
-            price=1000,
-            description="Powerful laptop",
-            manufacturer="Manufacturer",
-            category=category,
-            inventory=10,
-        )
-        self.serializer = ProductSerializer(instance=self.product)
-
-    """Test product serializer"""
-
-    def test_product_serializer(self):
-        data = self.serializer.data
-        self.assertEqual(data["id"], self.product.id)
-        self.assertEqual(data["title"], self.product.title)
-        self.assertEqual(data["price"], self.product.price)
-        self.assertEqual(data["description"], self.product.description)
-        self.assertEqual(data["manufacturer"], self.product.manufacturer)
-        self.assertEqual(data["category"], self.product.category.id)
-        self.assertEqual(data["inventory"], self.product.inventory)
+# === FIXTURES ===
 
 
-class ProductListSerializerTest(TestCase):
-    def setUp(self):
-        category = Category.objects.create(name="Electronics")
-        self.product = Product.objects.create(
-            title="Laptop",
-            price=1000,
-            description="Powerful laptop",
-            manufacturer="Manufacturer",
-            category=category,
-            inventory=10,
-        )
-        self.serializer = ProductListSerializer(instance=self.product)
+# === TESTS ===
+@pytest.mark.category_serializer
+def test_category_serializer(create_category):
+    """Test category serializer."""
+    category = create_category
+    serializer = CategorySerializer(instance=category)
+    data = serializer.data
 
-    def test_product_list_serializer(self):
-        data = self.serializer.data
-        self.assertEqual(data["id"], self.product.id)
-        self.assertEqual(data["title"], self.product.title)
-        self.assertEqual(data["price"], self.product.price)
-        self.assertEqual(data["category"], self.product.category.id)
-        # Проверьте, что другие поля не находятся в сериализованных данных
-        self.assertNotIn("description", data)
-        self.assertNotIn("manufacturer", data)
-        self.assertNotIn("inventory", data)
+    assert data["id"] == category.id
+    assert data["name"] == category.name
 
 
-class CartSerializerTest(TestCase):
-    def setUp(self):
-        user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="ValidPassword123!"
-        )
-        category = Category.objects.create(name="Electronics")
-        self.product = Product.objects.create(
-            title="Laptop",
-            price=1000,
-            description="Powerful laptop",
-            manufacturer="Manufacturer",
-            category=category,
-            inventory=10,
-        )
-        self.cart = Cart.objects.create(user=user, items=self.product, quantity=2)
-        self.serializer = CartSerializer(instance=self.cart)
+@pytest.mark.product_serializer
+def test_product_serializer(create_product):
+    """Test product serializer."""
+    product = create_product
+    serializer = ProductSerializer(instance=product)
+    data = serializer.data
 
-    """Test cart serialization"""
+    assert data["id"] == product.id
+    assert data["title"] == product.title
+    assert data["price"] == product.price
+    assert data["description"] == product.description
+    assert data["manufacturer"] == product.manufacturer
+    assert data["category"] == product.category.id
+    assert data["inventory"] == product.inventory
 
-    def test_cart_serializer(self):
-        data = self.serializer.data
-        self.assertEqual(data["id"], self.cart.id)
-        self.assertEqual(data["user"], self.cart.user.id)
-        self.assertEqual(data["item_title"], self.cart.items.title)
-        self.assertEqual(data["quantity"], self.cart.quantity)
-        self.assertEqual(data["total_cost"], self.cart.items.price * self.cart.quantity)
 
-    """Test cart serializer validation"""
+@pytest.mark.product_list_serializer
+def test_product_list_serializer(create_product):
+    """Test product list serializer."""
+    product = create_product
+    serializer = ProductListSerializer(instance=product)
+    data = serializer.data
 
-    def test_cart_serializer_validation(self):
+    assert data["id"] == product.id
+    assert data["title"] == product.title
+    assert data["price"] == product.price
+    assert data["category"] == product.category.name
+    assert data["inventory"] == product.inventory
+
+    assert "description" not in data
+    assert "manufacturer" not in data
+
+
+@pytest.mark.cart_serializer
+class TestCartSerializer:
+    """Tests for CartSerializer."""
+
+    def test_cart_serializer(self, create_cart_serializer):
+        """
+        Tests the correct serialisation of the shopping cart object.
+        """
+        serializer = create_cart_serializer["serializer"]
+        cart = create_cart_serializer["cart"]
+        data = serializer.data
+
+        assert data["id"] == cart.id
+        assert data["user"] == cart.user.id
+        assert data["item_title"] == cart.items.title
+        assert data["quantity"] == cart.quantity
+        assert data["total_cost"] == cart.items.price * cart.quantity
+
+    def test_cart_serializer_validation(self, create_cart_serializer):
+        """
+        Tests the validation of the data in the basket serialiser.
+        If a quantity is passed that exceeds the available inventory, the validation should fail with an error with the ‘quantity’ key.
+        """
+        user = create_cart_serializer["user"]
+        product = create_cart_serializer["product"]
+
         data = {
-            "user": self.cart.user.id,
-            "items": self.product.id,
-            "quantity": 20,  # Exceeding available inventory
+            "user": user.id,
+            "items": product.id,
+            "quantity": 20,
         }
         serializer = CartSerializer(data=data)
-        self.assertFalse(serializer.is_valid())
-        self.assertIn("quantity", serializer.errors)
+        assert not serializer.is_valid()
+        assert "quantity" in serializer.errors

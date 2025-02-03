@@ -21,7 +21,9 @@ const CreateProductForm: React.FC = () => {
 
   const loadCategories = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/shop/categories/');
+      const response = await axios.get('http://localhost:8000/api/shop/categories/', {
+        withCredentials: true, // Добавляем для авторизованного запроса
+      });
       setCategories(response.data);
     } catch (error) {
       console.error('Ошибка при загрузке категорий:', error);
@@ -39,7 +41,13 @@ const CreateProductForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:8000/api/shop/products/', product);
+      const response = await axios.post(
+        'http://localhost:8000/api/shop/products/',
+        product,
+        {
+          withCredentials: true, // Отправляем куки с запросом
+        }
+      );
       console.log('Продукт успешно создан:', response.data);
       setProduct(initialProductState);
     } catch (error) {
