@@ -1,7 +1,9 @@
 import pytest
+from rest_framework.test import APIClient
 from shop.serializers import CartSerializer
 from django.contrib.auth import get_user_model
 from shop.models import Category, Product, Cart
+from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model()
 
@@ -58,3 +60,41 @@ def create_cart_serializer(db):
         "serializer": serializer,
     }
 
+
+@pytest.fixture
+def setup_views(db):
+    user = User.objects.create_user(
+        username="testuser",
+        email="test@example.com",
+        password="ValidPassword123!"
+    )
+    token = RefreshToken.for_user(user)
+    admin_user = User.objects.create_superuser(
+        username="adminuser",
+        email="admin@example.com",
+        password="AdminPassword123!"
+    )
+    category_data = {"name": "Electronics"}
+    category = Category.objects.create(**category_data)
+
+    return {
+        "user": user,
+        "token": token,
+        "admin_user": admin_user,
+        "category_data": category_data,
+        "category": category,
+    }
+
+
+@pytest.fixture
+def api_client():
+    return APIClient()
+
+
+@pytest.fixture(autouse=True)
+def disable_cache(settings):
+    settings.CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        }
+    }

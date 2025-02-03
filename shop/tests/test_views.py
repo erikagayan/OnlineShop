@@ -1,3 +1,4 @@
+import pytest
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -6,48 +7,70 @@ from shop.models import Category
 from users.models import User
 
 
-class CategoryViewSetTests(APITestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(
-            username="testuser", email="test@example.com", password="ValidPassword123!"
-        )
-        self.token = RefreshToken.for_user(self.user)
-        self.admin_user = User.objects.create_superuser(
-            username="adminuser",
-            email="admin@example.com",
-            password="AdminPassword123!",
-        )
+@pytest.mark.category_view
+class TestCategoryViewSet:
+    """Тесты для CategoryViewSet с использованием фикстур setup_views и api_client."""
 
-        self.category_data = {"name": "Electronics"}
-        self.category = Category.objects.create(**self.category_data)
-
-    def test_list_categories(self):
+    def test_list_categories(self, setup_views, api_client):
+        """
+        Тест получения списка категорий:
+        - Авторизация через JWT обычного пользователя.
+        - Ожидается статус 200 OK.
+        """
+        token = setup_views["token"]
         url = reverse("product:category-list")
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token.access_token}")
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token.access_token}")
+        response = api_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
 
-    def test_create_category_as_user(self):
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token.access_token}")
+    def test_create_category_as_user(self, setup_views, api_client):
+        """
+        Тест попытки создания категории обычным пользователем:
+        - Авторизация через JWT обычного пользователя.
+        - Ожидается, что операция запрещена (403 Forbidden).
+        """
+        token = setup_views["token"]
         url = reverse("product:category-list")
-        response = self.client.post(url, self.category_data)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token.access_token}")
+        response = api_client.post(url, setup_views["category_data"])
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    def test_retrieve_category(self):
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token.access_token}")
-        url = reverse("product:category-detail", args=[self.category.pk])
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+    def test_retrieve_category(self, setup_views, api_client):
+        """
+        Тест получения деталей категории:
+        - Авторизация через JWT обычного пользователя.
+        - Ожидается статус 200 OK.
+        """
+        token = setup_views["token"]
+        category = setup_views["category"]
+        url = reverse("product:category-detail", args=[category.pk])
+        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token.access_token}")
+        response = api_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
 
-    def test_update_category_as_user(self):
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token.access_token}")
-        url = reverse("product:category-detail", args=[self.category.pk])
+    def test_update_category_as_user(self, setup_views, api_client):
+        """
+        Тест попытки обновления категории обычным пользователем:
+        - Авторизация через JWT обычного пользователя.
+        - Ожидается, что операция запрещена (403 Forbidden).
+        """
+        token = setup_views["token"]
+        category = setup_views["category"]
+        url = reverse("product:category-detail", args=[category.pk])
+        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token.access_token}")
         new_data = {"name": "Updated Category"}
-        response = self.client.put(url, new_data)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        response = api_client.put(url, new_data)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    def test_delete_category_as_user(self):
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token.access_token}")
-        url = reverse("product:category-detail", args=[self.category.pk])
-        response = self.client.delete(url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    def test_delete_category_as_user(self, setup_views, api_client):
+        """
+        Тест попытки удаления категории обычным пользователем:
+        - Авторизация через JWT обычного пользователя.
+        - Ожидается, что операция запрещена (403 Forbidden).
+        """
+        token = setup_views["token"]
+        category = setup_views["category"]
+        url = reverse("product:category-detail", args=[category.pk])
+        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token.access_token}")
+        response = api_client.delete(url)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
