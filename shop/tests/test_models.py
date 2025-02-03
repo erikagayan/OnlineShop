@@ -7,35 +7,6 @@ from shop.models import Category, Product, Cart
 User = get_user_model()
 
 # === FIXTURES ===
-
-
-@pytest.fixture
-def create_categories(db):
-    """Fixture to create test categories."""
-    Category.objects.create(name="Electronics")
-    Category.objects.create(name="Books")
-
-
-@pytest.fixture
-def create_category(db):
-    """Fixture to create a test category."""
-    return Category.objects.create(name="Electronics")
-
-
-@pytest.fixture
-def create_product(db, create_categories):
-    """Fixture to create a test product."""
-    category = Category.objects.get(name="Electronics")
-    return Product.objects.create(
-        title="Laptop",
-        price=1000,
-        description="Powerful laptop",
-        manufacturer="Manufacturer",
-        category=category,
-        inventory=10,
-    )
-
-
 @pytest.fixture
 def create_user(db):
     """Fixture to create a test user."""
@@ -49,7 +20,7 @@ def create_cart(db, create_user, create_categories):
     """Fixture to create a test cart."""
     category = Category.objects.get(
         name="Electronics"
-    )  # Используем уже созданные категории
+    )
     product = Product.objects.create(
         title="Laptop",
         price=1000,
