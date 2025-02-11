@@ -22,7 +22,7 @@ const DetailProduct: React.FC = () => {
     const fetchProduct = async () => {
       try {
         const response = await axios.get<Product>(`http://localhost:8000/api/shop/products/${id}/`, {
-          withCredentials: true, // Добавляем опцию для отправки cookies
+          withCredentials: true,
         });
         setProduct(response.data);
       } catch (error) {

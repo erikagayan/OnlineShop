@@ -67,14 +67,14 @@ const Cart = () => {
           quantity,
         },
         {
-          withCredentials: true, // Отправка cookies
+          withCredentials: true,
         }
       );
       alert("Product added to cart");
 
       // Обновляем список корзины после добавления
       const response = await axios.get("http://localhost:8000/api/shop/carts/", {
-        withCredentials: true, // Отправка cookies
+        withCredentials: true,
       });
       setCartItems(response.data);
     } catch (error) {

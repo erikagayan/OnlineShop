@@ -9,8 +9,11 @@ interface UserProfileData {
 }
 
 const UserProfile: React.FC = () => {
+  // stores profile data
   const [profileData, setProfileData] = useState<UserProfileData | null>(null);
+  // A boolean variable that indicates whether the data is being loaded
   const [isLoading, setIsLoading] = useState(true);
+  // the error message is stored
   const [error, setError] = useState('');
 
   useEffect(() => {

@@ -20,10 +20,10 @@ const ProductsList: React.FC = () => {
   useEffect(() => {
     axios
       .get<Product[]>("http://localhost:8000/api/shop/products/", {
-        withCredentials: true, // Добавляем эту опцию для отправки cookies
+        withCredentials: true,
       })
       .then((response) => {
-        setProducts(response.data); // Типизированный ответ
+        setProducts(response.data);
       })
       .catch((error) => {
         console.error("Error fetching products:", error);

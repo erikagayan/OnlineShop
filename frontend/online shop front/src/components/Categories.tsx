@@ -14,7 +14,7 @@ const Categories: React.FC = () => {
   const fetchCategories = async () => {
     try {
       const response = await axios.get('http://localhost:8000/api/shop/categories/', {
-        withCredentials: true, // Добавляем эту опцию
+        withCredentials: true,
       });
       setCategories(response.data);
     } catch (error) {
@@ -31,7 +31,7 @@ const Categories: React.FC = () => {
       await axios.post(
         'http://localhost:8000/api/shop/categories/',
         { name: newCategoryName },
-        { withCredentials: true } // Добавляем эту опцию
+        { withCredentials: true }
       );
       setNewCategoryName('');
       fetchCategories();
