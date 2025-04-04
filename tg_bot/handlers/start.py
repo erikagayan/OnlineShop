@@ -18,6 +18,18 @@ async def start_handler(message: types.Message):
             user = await sync_to_async(lambda: telegram_token.user)()
             # Get user email asynchronously (for debugging)
             user_email = await sync_to_async(lambda: user.email)()
+
+            chat_id = str(message.chat.id)
+            existing_user = await sync_to_async(
+                User.objects.filter(telegram_chat_id=chat_id).exclude(id=user.id).first)()
+            if existing_user:
+                await message.answer(
+                    f"This Telegram account is already connected to another account."
+                    "One Telegram account can only be linked to one user."
+                )
+                await sync_to_async(telegram_token.delete)()
+                return
+
             # Set telegram_chat_id and save
             user.telegram_chat_id = str(message.chat.id)
             await sync_to_async(user.save)()

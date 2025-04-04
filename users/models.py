@@ -50,7 +50,7 @@ class User(AbstractUser):
     is_manager = models.BooleanField(default=False)
     email = models.EmailField(_("email address"), unique=True)
     username = models.CharField(_("username"), unique=True, max_length=150)
-    telegram_chat_id = models.CharField(max_length=50, null=True, blank=True)
+    telegram_chat_id = models.CharField(max_length=50, null=True, blank=True, unique=True)
 
     # Email for auth
     USERNAME_FIELD = "email"
