@@ -9,7 +9,7 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "username", "email", "password")
+        fields = ("id", "username", "email", "password", "telegram_chat_id")
         extra_kwargs = {"password": {"write_only": True}}
 
     @staticmethod
@@ -24,7 +24,8 @@ class UserSerializer(serializers.ModelSerializer):
                 email=validated_data["email"],
                 password=validated_data["password"],
                 is_moderator=validated_data.get("is_moderator", False),
-                is_manager=validated_data.get("is_manager", False)
+                is_manager=validated_data.get("is_manager", False),
+                telegram_chat_id=validated_data.get("telegram_chat_id", None)
             )
             return user
         except Exception as e:
