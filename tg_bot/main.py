@@ -1,4 +1,5 @@
 import asyncio
+from tg_bot.django_setup import *
 from tg_bot.bot import bot, dp
 from tg_bot.handlers import router
 

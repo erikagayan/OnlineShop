@@ -14,3 +14,4 @@ env_path = Path(__file__).resolve().parent.parent / "online_shop" / ".env"
 config = Config(RepositoryEnv(env_path))
 
 BOT_TOKEN = config("BOT_TOKEN")
+DJANGO_SETTINGS_MODULE = "online_shop.settings"
