@@ -1,13 +1,12 @@
 from django.db import transaction
-from rest_framework.response import Response
-from rest_framework import viewsets, mixins, status
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from rest_framework import viewsets, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from rest_framework.response import Response
 
-from users.models import User
 from shop.models import Product, Category, Cart
 from shop.permissions import IsStaffOrReadOnly, IsOwnerOrStaff
 from shop.serializers import (
@@ -16,6 +15,7 @@ from shop.serializers import (
     CategorySerializer,
     CartSerializer,
 )
+from shop.tasks import notify_users_about_inventory_change
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -24,6 +24,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsStaffOrReadOnly]
 
     """Caching in Redis"""
+
     @method_decorator(cache_page(10))
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
@@ -34,24 +35,20 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     permission_classes = [IsAuthenticated, IsStaffOrReadOnly]
 
-    """ProductSerializer contains full info about product"""
     def get_serializer_class(self):
         if self.action == "list":
             return ProductListSerializer
         return ProductSerializer
 
-    """Sorting by order by in url"""
     def get_queryset(self):
         queryset = super().get_queryset()
         order_by = self.request.query_params.get("order_by", None)
-
         if order_by == "price":
             queryset = queryset.order_by("price")
         elif order_by == "category":
             queryset = queryset.order_by("category")
         return queryset
 
-    """Inventory cannot be negative during create"""
     def perform_create(self, serializer):
         inventory = int(self.request.data.get("inventory", 0))
         if inventory < 0:
@@ -61,33 +58,40 @@ class ProductViewSet(viewsets.ModelViewSet):
             )
         serializer.save()
 
-    """Inventory cannot be negative during update"""
     def perform_update(self, serializer):
-        inventory = int(self.request.data.get("inventory", 0))
-        if inventory < 0:
+        """Updates the product and sends a notification when inventory changes."""
+        instance = self.get_object()
+        old_inventory = instance.inventory
+        new_inventory_value = int(self.request.data.get("inventory", 0))
+
+        if new_inventory_value < 0:
             return Response(
                 {"inventory": "Inventory cannot be negative."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        serializer.save()
 
-    """Caching in Redis"""
+        serializer.save()
+        new_inventory = serializer.instance.inventory
+
+        if old_inventory != new_inventory:
+            notify_users_about_inventory_change.delay(
+                product_id=instance.id,
+                old_inventory=old_inventory,
+                new_inventory=new_inventory,
+            )
+
     @method_decorator(cache_page(10))
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
-    """drf_spectacular"""
-    """Only for documentation"""
     @extend_schema(
         parameters=[
             OpenApiParameter(
-                "price",
-                type={"type": "list", "items": {"type": "number"}},
+                "price", type={"type": "list", "items": {"type": "number"}}
             ),
             OpenApiParameter(
-                "category",
-                type={"type": "list", "items": {"type": "number"}},
-            )
+                "category", type={"type": "list", "items": {"type": "number"}}
+            ),
         ]
     )
     def list(self, request, *args, **kwargs):
@@ -128,6 +132,7 @@ class CartViewSet(viewsets.ModelViewSet):
 
     """drf_spectacular"""
     """Only for documentation"""
+
     @extend_schema(
         parameters=[
             OpenApiParameter(
@@ -140,6 +145,7 @@ class CartViewSet(viewsets.ModelViewSet):
         return super().list(request, *args, **kwargs)
 
     """Caching in Redis"""
+
     @method_decorator(cache_page(10))
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
