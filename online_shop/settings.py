@@ -102,7 +102,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         "NAME": "django_password_validators.password_character_requirements.password_validation"
-                ".PasswordCharacterValidator",
+        ".PasswordCharacterValidator",
         "OPTIONS": {
             "min_length_digit": 1,
             "min_length_alpha": 2,
@@ -118,7 +118,7 @@ AUTH_PASSWORD_VALIDATORS = [
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        #"LOCATION": "redis://redis:6379/1",
+        # "LOCATION": "redis://redis:6379/1",
         "LOCATION": "redis://127.0.0.1:6379/",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
@@ -143,12 +143,8 @@ MEDIA_URL = "/media/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "users.auth.CookieJWTAuthentication",
-    ),
-
-    "DEFAULT_SCHEMA_CLASS":
-        "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_AUTHENTICATION_CLASSES": ("users.auth.CookieJWTAuthentication",),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 SIMPLE_JWT = {
@@ -156,6 +152,15 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=3),
     "ROTATE_REFRESH_TOKENS": False,
 }
+
+TELEGRAM_BOT_TOKEN = config("BOT_TOKEN")
+
+CELERY_BROKER_URL = "redis://127.0.0.1:6379/1"
+CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/1"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = "Europe/Kiev"
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Online shop API",
@@ -167,5 +172,5 @@ SPECTACULAR_SETTINGS = {
         "defaultModelRendering": "model",
         "defaultModelExpandDepth": 2,
         "defaultModelsExpandDepth": 2,
-    }
+    },
 }
