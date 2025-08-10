@@ -1,26 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Container, Typography, CircularProgress, Alert } from '@mui/material';
+import { Container, Typography, CircularProgress, Alert, Button, Link } from '@mui/material';
 
 interface UserProfileData {
   id: number;
   username: string;
   email: string;
+  telegram_chat_id: string | null; // Добавляем поле для Telegram
 }
 
 const UserProfile: React.FC = () => {
-  // stores profile data
   const [profileData, setProfileData] = useState<UserProfileData | null>(null);
-  // A boolean variable that indicates whether the data is being loaded
   const [isLoading, setIsLoading] = useState(true);
-  // the error message is stored
   const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
         const response = await axios.get('http://localhost:8000/api/users/me/', {
-          withCredentials: true
+          withCredentials: true, // Отправляем cookies для аутентификации
         });
         setProfileData(response.data);
       } catch (error) {
@@ -36,6 +34,20 @@ const UserProfile: React.FC = () => {
 
     fetchProfileData();
   }, []);
+
+  // Функция для подключения Telegram
+  const handleConnectTelegram = async () => {
+    try {
+      const response = await axios.get('http://localhost:8000/api/users/telegram-link/', {
+        withCredentials: true, // Отправляем cookies
+      });
+      const { telegram_link } = response.data;
+      // Перенаправляем пользователя на ссылку Telegram
+      window.location.href = telegram_link;
+    } catch (error) {
+      setError('Ошибка при получении ссылки для Telegram.');
+    }
+  };
 
   if (isLoading) {
     return <Container><CircularProgress /></Container>;
@@ -55,6 +67,24 @@ const UserProfile: React.FC = () => {
           <Typography variant="body1"><strong>ID:</strong> {profileData.id}</Typography>
           <Typography variant="body1"><strong>Username:</strong> {profileData.username}</Typography>
           <Typography variant="body1"><strong>Email:</strong> {profileData.email}</Typography>
+          <Typography variant="body1" sx={{ mt: 2 }}>
+            <strong>Telegram:</strong>{' '}
+            {profileData.telegram_chat_id ? (
+              <>
+                Подключен{' '}
+                <Link href="https://t.me/online_shop_django_bot" target="_blank" rel="noopener">
+                  Перейти к боту
+                </Link>
+              </>
+            ) : (
+              <>
+                Не подключен{' '}
+                <Button variant="contained" color="primary" onClick={handleConnectTelegram}>
+                  Подключить Telegram
+                </Button>
+              </>
+            )}
+          </Typography>
         </div>
       )}
     </Container>

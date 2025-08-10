@@ -1,8 +1,11 @@
+import uuid
 from rest_framework import generics
 from django.http import JsonResponse
-
-from users.auth import CookieJWTAuthentication
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from users.models import TelegramToken
 from users.serializers import UserSerializer
+from users.auth import CookieJWTAuthentication
 from rest_framework.settings import api_settings
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -60,3 +63,15 @@ class ManageUserView(generics.RetrieveUpdateAPIView):
     # return auth user
     def get_object(self):
         return self.request.user
+
+
+class GenerateTelegramLinkView(APIView):
+    authentication_classes = (CookieJWTAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        token = str(uuid.uuid4())
+        telegram_token = TelegramToken.objects.create(user=request.user, token=token)
+        bot_username = "online_shop_django_bot"
+        telegram_link = f"https://t.me/{bot_username}?start={token}"
+        return Response({"telegram_link": telegram_link})

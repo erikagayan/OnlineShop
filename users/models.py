@@ -50,6 +50,7 @@ class User(AbstractUser):
     is_manager = models.BooleanField(default=False)
     email = models.EmailField(_("email address"), unique=True)
     username = models.CharField(_("username"), unique=True, max_length=150)
+    telegram_chat_id = models.CharField(max_length=50, null=True, blank=True, unique=True)
 
     # Email for auth
     USERNAME_FIELD = "email"
@@ -71,3 +72,13 @@ class User(AbstractUser):
     class Meta:
         verbose_name = _("user")
         verbose_name_plural = _("users")
+
+
+class TelegramToken(models.Model):
+    """Model for temporary tokens for Telegram connection"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="telegram_tokens")
+    token = models.CharField(max_length=36, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Token {self.token} for {self.user.email}"
