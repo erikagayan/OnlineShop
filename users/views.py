@@ -1,20 +1,17 @@
 import uuid
 from rest_framework import generics
 from django.http import JsonResponse
+from users.models import TelegramToken
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from users.models import TelegramToken
 from users.serializers import UserSerializer
 from users.auth import CookieJWTAuthentication
-from rest_framework.settings import api_settings
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 class CreateUserView(generics.CreateAPIView):
     """Create a new user in the system"""
-
     serializer_class = UserSerializer
 
 
